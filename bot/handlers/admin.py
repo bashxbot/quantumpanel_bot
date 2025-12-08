@@ -29,7 +29,8 @@ from bot.keyboards.admin_kb import (
     credits_keyboard,
     user_credits_keyboard,
     premium_users_keyboard,
-    premium_user_manage_keyboard
+    premium_user_manage_keyboard,
+    quick_add_keyboard
 )
 from bot.config import config
 
@@ -86,6 +87,28 @@ async def admin_back(callback: CallbackQuery, state: FSMContext):
         text,
         parse_mode=ParseMode.HTML,
         reply_markup=admin_main_keyboard()
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "admin:quick_add")
+async def quick_add_menu(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    text = f"""
+{Templates.DIVIDER}
+➕ <b>QUICK ADD MENU</b>
+{Templates.DIVIDER}
+
+Select what you want to add:
+"""
+    
+    await callback.message.edit_text(
+        text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=quick_add_keyboard()
     )
     await callback.answer()
 
@@ -250,6 +273,16 @@ async def manage_single_product(callback: CallbackQuery, state: FSMContext):
         await callback.answer()
         return
     
+    elif action == "set_image" and product_id:
+        await state.set_state(AdminStates.waiting_product_image)
+        await state.update_data(image_product_id=product_id)
+        await callback.message.edit_text(
+            Templates.info("Send the product image (as a photo):"),
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer()
+        return
+    
     elif action == "prices" and product_id:
         await state.update_data(current_product_id=product_id)
         await state.set_state(AdminStates.waiting_price_duration)
@@ -280,6 +313,29 @@ async def manage_single_product(callback: CallbackQuery, state: FSMContext):
                 )
     
     await callback.answer()
+
+
+@router.message(AdminStates.waiting_product_image, F.photo)
+async def receive_product_image(message: Message, state: FSMContext):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    data = await state.get_data()
+    product_id = data.get("image_product_id")
+    
+    file_id = message.photo[-1].file_id
+    
+    async with async_session() as session:
+        product_service = ProductService(session)
+        await product_service.update_product(product_id, image_id=file_id)
+        
+        await state.clear()
+        
+        await message.answer(
+            Templates.success("Product image updated successfully!"),
+            parse_mode=ParseMode.HTML,
+            reply_markup=back_to_admin_keyboard()
+        )
 
 
 @router.message(AdminStates.waiting_price_duration)
@@ -555,6 +611,38 @@ async def add_reseller(message: Message, state: FSMContext):
         )
 
 
+@router.callback_query(F.data.startswith("admin:reseller:") & ~F.data.contains("add") & ~F.data.contains("remove") & ~F.data.contains("orders"))
+async def show_reseller_detail(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    user_id = int(callback.data.split(":")[-1])
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        users = await user_service.get_all_users()
+        user = next((u for u in users if u.id == user_id), None)
+        
+        if user:
+            text = f"""
+{Templates.DIVIDER}
+🧑‍💼 <b>RESELLER DETAILS</b>
+{Templates.DIVIDER}
+
+👤 <b>Name:</b> {user.first_name or 'N/A'}
+🆔 <b>Telegram ID:</b> <code>{user.telegram_id}</code>
+👤 <b>Username:</b> @{user.username or 'N/A'}
+💰 <b>Balance:</b> <code>${user.balance:.2f}</code>
+"""
+            await callback.message.edit_text(
+                text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=reseller_manage_keyboard(user_id)
+            )
+    await callback.answer()
+
+
 @router.callback_query(F.data.startswith("admin:reseller:remove:"))
 async def remove_reseller(callback: CallbackQuery):
     if not await is_admin_check(callback.from_user.id):
@@ -649,6 +737,38 @@ async def add_admin(message: Message, state: FSMContext):
                 parse_mode=ParseMode.HTML,
                 reply_markup=back_to_admin_keyboard()
             )
+
+
+@router.callback_query(F.data.startswith("admin:admin:") & ~F.data.contains("add") & ~F.data.contains("remove"))
+async def show_admin_detail(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    admin_id = int(callback.data.split(":")[-1])
+    
+    async with async_session() as session:
+        admin_service = AdminService(session)
+        admins = await admin_service.get_all_admins()
+        admin = next((a for a in admins if a.id == admin_id), None)
+        
+        if admin:
+            is_root = admin.telegram_id == config.bot.root_admin_id
+            text = f"""
+{Templates.DIVIDER}
+{'👑' if is_root else '🔑'} <b>ADMIN DETAILS</b>
+{Templates.DIVIDER}
+
+🆔 <b>Telegram ID:</b> <code>{admin.telegram_id}</code>
+👤 <b>Username:</b> @{admin.username or 'N/A'}
+{'👑 <b>Root Admin</b>' if is_root else ''}
+"""
+            await callback.message.edit_text(
+                text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=admin_manage_keyboard(admin_id, admin.telegram_id, config.bot.root_admin_id)
+            )
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("admin:admin:remove:"))
@@ -761,6 +881,37 @@ async def add_seller_name(message: Message, state: FSMContext):
             parse_mode=ParseMode.HTML,
             reply_markup=back_to_admin_keyboard()
         )
+
+
+@router.callback_query(F.data.startswith("admin:seller:") & ~F.data.contains("add") & ~F.data.contains("remove"))
+async def show_seller_detail(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    seller_id = int(callback.data.split(":")[-1])
+    
+    async with async_session() as session:
+        seller_service = SellerService(session)
+        sellers = await seller_service.get_all_sellers()
+        seller = next((s for s in sellers if s.id == seller_id), None)
+        
+        if seller:
+            text = f"""
+{Templates.DIVIDER}
+⭐ <b>SELLER DETAILS</b>
+{Templates.DIVIDER}
+
+👤 <b>Username:</b> @{seller.username}
+📝 <b>Name:</b> {seller.name or 'N/A'}
+📋 <b>Description:</b> {seller.description or 'N/A'}
+"""
+            await callback.message.edit_text(
+                text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=seller_manage_keyboard(seller_id)
+            )
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("admin:seller:remove:"))

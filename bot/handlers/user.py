@@ -2,7 +2,7 @@ import os
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.filters import Command
-from aiogram.enums import ParseMode
+from aiogram.enums import ParseMode, ContentType
 from loguru import logger
 
 from bot.database import async_session
@@ -24,6 +24,21 @@ from bot.models import UserStatus
 router = Router()
 
 BANNER_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "banner.jpg")
+
+
+async def edit_message(callback: CallbackQuery, text: str, reply_markup=None):
+    if callback.message.content_type == ContentType.PHOTO:
+        await callback.message.edit_caption(
+            caption=text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=reply_markup
+        )
+    else:
+        await callback.message.edit_text(
+            text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=reply_markup
+        )
 
 
 @router.message(Command("start"))
@@ -81,11 +96,7 @@ async def back_to_menu(callback: CallbackQuery):
             last_purchase=user.last_purchase_at
         )
         
-        await callback.message.edit_text(
-            text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=main_menu_keyboard()
-        )
+        await edit_message(callback, text, main_menu_keyboard())
     await callback.answer()
 
 
@@ -102,11 +113,7 @@ async def show_trusted_sellers(callback: CallbackQuery):
         
         text = Templates.trusted_sellers(sellers_data)
         
-        await callback.message.edit_text(
-            text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=back_to_menu_keyboard()
-        )
+        await edit_message(callback, text, back_to_menu_keyboard())
     await callback.answer()
 
 
@@ -133,11 +140,7 @@ async def show_products(callback: CallbackQuery):
         
         text = Templates.products_list(products_data, is_premium=is_premium)
         
-        await callback.message.edit_text(
-            text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=products_keyboard(products_data, is_premium=is_premium)
-        )
+        await edit_message(callback, text, products_keyboard(products_data, is_premium=is_premium))
     await callback.answer()
 
 
@@ -150,9 +153,7 @@ async def show_product_detail(callback: CallbackQuery):
         product_service = ProductService(session)
         
         user = await user_service.get_user_by_telegram_id(callback.from_user.id)
-        if not user or user.status != UserStatus.PREMIUM:
-            await callback.answer("⚠️ Premium access required!", show_alert=True)
-            return
+        is_premium = user and user.status == UserStatus.PREMIUM
         
         product = await product_service.get_product(product_id)
         if not product:
@@ -168,11 +169,7 @@ async def show_product_detail(callback: CallbackQuery):
         
         text = Templates.product_detail(product_data)
         
-        await callback.message.edit_text(
-            text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=product_detail_keyboard(product_id, product_data["prices"])
-        )
+        await edit_message(callback, text, product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium))
     await callback.answer()
 
 
@@ -214,11 +211,7 @@ async def initiate_purchase(callback: CallbackQuery):
             f"After purchase: <code>${user.balance - price.price:.2f}</code>"
         )
         
-        await callback.message.edit_text(
-            text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=confirm_purchase_keyboard(product_id, price_id)
-        )
+        await edit_message(callback, text, confirm_purchase_keyboard(product_id, price_id))
     await callback.answer()
 
 
@@ -284,11 +277,7 @@ async def confirm_purchase(callback: CallbackQuery):
         
         logger.info(f"✅ Purchase completed: User {user.telegram_id} bought {product.name}")
         
-        await callback.message.edit_text(
-            success_msg,
-            parse_mode=ParseMode.HTML,
-            reply_markup=back_to_menu_keyboard()
-        )
+        await edit_message(callback, success_msg, back_to_menu_keyboard())
     await callback.answer()
 
 
@@ -318,11 +307,7 @@ async def show_my_orders(callback: CallbackQuery):
         
         text = Templates.my_orders(orders_data)
         
-        await callback.message.edit_text(
-            text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=back_to_menu_keyboard()
-        )
+        await edit_message(callback, text, back_to_menu_keyboard())
     await callback.answer()
 
 
@@ -330,11 +315,7 @@ async def show_my_orders(callback: CallbackQuery):
 async def show_add_balance(callback: CallbackQuery):
     text = Templates.add_balance(config.bot.admin_username)
     
-    await callback.message.edit_text(
-        text,
-        parse_mode=ParseMode.HTML,
-        reply_markup=back_to_menu_keyboard()
-    )
+    await edit_message(callback, text, back_to_menu_keyboard())
     await callback.answer()
 
 
@@ -342,9 +323,10 @@ async def show_add_balance(callback: CallbackQuery):
 async def show_upgrade_premium(callback: CallbackQuery):
     text = Templates.upgrade_premium(config.bot.admin_username)
     
-    await callback.message.edit_text(
-        text,
-        parse_mode=ParseMode.HTML,
-        reply_markup=back_to_menu_keyboard()
-    )
+    await edit_message(callback, text, back_to_menu_keyboard())
+    await callback.answer()
+
+
+@router.callback_query(F.data == "noop")
+async def noop_callback(callback: CallbackQuery):
     await callback.answer()

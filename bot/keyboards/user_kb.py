@@ -32,15 +32,15 @@ def back_to_menu_keyboard() -> InlineKeyboardMarkup:
 def products_keyboard(products: list, is_premium: bool = False) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     
-    if is_premium and products:
-        for p in products:
-            builder.row(
-                InlineKeyboardButton(
-                    text=f"📦 {p['name']}", 
-                    callback_data=f"product:{p['id']}"
-                )
+    for p in products:
+        builder.row(
+            InlineKeyboardButton(
+                text=f"📦 {p['name']}", 
+                callback_data=f"product:{p['id']}"
             )
-    elif not is_premium:
+        )
+    
+    if not is_premium:
         builder.row(
             InlineKeyboardButton(text="🚀 Upgrade to Premium", callback_data="upgrade_premium")
         )
@@ -51,15 +51,27 @@ def products_keyboard(products: list, is_premium: bool = False) -> InlineKeyboar
     return builder.as_markup()
 
 
-def product_detail_keyboard(product_id: int, prices: list) -> InlineKeyboardMarkup:
+def product_detail_keyboard(product_id: int, prices: list, is_premium: bool = True) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     
-    for price in prices:
-        builder.row(
-            InlineKeyboardButton(
-                text=f"🛒 Buy {price['duration']} - ${price['price']}",
-                callback_data=f"buy:{product_id}:{price['id']}"
+    if is_premium:
+        for price in prices:
+            builder.row(
+                InlineKeyboardButton(
+                    text=f"🛒 Buy {price['duration']} - ${price['price']}",
+                    callback_data=f"buy:{product_id}:{price['id']}"
+                )
             )
+    else:
+        for price in prices:
+            builder.row(
+                InlineKeyboardButton(
+                    text=f"💰 {price['duration']} - ${price['price']}",
+                    callback_data="noop"
+                )
+            )
+        builder.row(
+            InlineKeyboardButton(text="🚀 Upgrade to Purchase", callback_data="upgrade_premium")
         )
     
     builder.row(

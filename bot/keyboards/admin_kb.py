@@ -3,6 +3,32 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from typing import List
 
 
+def _add_global_add_button(builder: InlineKeyboardBuilder):
+    builder.row(
+        InlineKeyboardButton(text="➕ Quick Add", callback_data="admin:quick_add")
+    )
+
+
+def quick_add_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="📦 Add Product", callback_data="admin:product:add"),
+        InlineKeyboardButton(text="⭐ Add Premium User", callback_data="admin:premium:add")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🧑‍💼 Add Reseller", callback_data="admin:reseller:add"),
+        InlineKeyboardButton(text="🔑 Add Admin", callback_data="admin:admin:add")
+    )
+    builder.row(
+        InlineKeyboardButton(text="⭐ Add Seller", callback_data="admin:seller:add"),
+        InlineKeyboardButton(text="💵 Add Credits", callback_data="admin:credits:add_by_id")
+    )
+    builder.row(
+        InlineKeyboardButton(text="◀️ Back", callback_data="admin:back")
+    )
+    return builder.as_markup()
+
+
 def admin_main_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
@@ -69,6 +95,7 @@ def premium_user_manage_keyboard(user_id: int) -> InlineKeyboardMarkup:
 
 def back_to_admin_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
+    _add_global_add_button(builder)
     builder.row(
         InlineKeyboardButton(text="◀️ Back to Admin", callback_data="admin:back")
     )
@@ -90,6 +117,7 @@ def products_manage_keyboard(products: list) -> InlineKeyboardMarkup:
     builder.row(
         InlineKeyboardButton(text="➕ Add Product", callback_data="admin:product:add")
     )
+    _add_global_add_button(builder)
     builder.row(
         InlineKeyboardButton(text="◀️ Back to Admin", callback_data="admin:back")
     )
@@ -106,7 +134,7 @@ def product_manage_keyboard(product_id: int) -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="🖼 Set Image", callback_data=f"admin:product:set_image:{product_id}")
     )
     builder.row(
-        InlineKeyboardButton(text="💰 Manage Prices", callback_data=f"admin:product:prices:{product_id}")
+        InlineKeyboardButton(text="💰 Add Prices", callback_data=f"admin:product:prices:{product_id}")
     )
     builder.row(
         InlineKeyboardButton(text="🔄 Toggle Active", callback_data=f"admin:product:toggle:{product_id}")
@@ -114,6 +142,7 @@ def product_manage_keyboard(product_id: int) -> InlineKeyboardMarkup:
     builder.row(
         InlineKeyboardButton(text="🗑 Delete Product", callback_data=f"admin:product:delete:{product_id}")
     )
+    _add_global_add_button(builder)
     builder.row(
         InlineKeyboardButton(text="◀️ Back to Products", callback_data="admin:products")
     )
