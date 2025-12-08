@@ -12,6 +12,9 @@ def admin_main_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="💰 Manage Prices", callback_data="admin:prices")
     )
     builder.row(
+        InlineKeyboardButton(text="⭐ Manage Premium Users", callback_data="admin:premium")
+    )
+    builder.row(
         InlineKeyboardButton(text="🧑‍💼 Manage Resellers", callback_data="admin:resellers")
     )
     builder.row(
@@ -28,6 +31,38 @@ def admin_main_keyboard() -> InlineKeyboardMarkup:
     )
     builder.row(
         InlineKeyboardButton(text="📊 Statistics", callback_data="admin:stats")
+    )
+    return builder.as_markup()
+
+
+def premium_users_keyboard(users: list) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    
+    for u in users:
+        name = u.get('username') or u.get('first_name', f"User {u['telegram_id']}")
+        builder.row(
+            InlineKeyboardButton(
+                text=f"⭐ {name}", 
+                callback_data=f"admin:premium:user:{u['id']}"
+            )
+        )
+    
+    builder.row(
+        InlineKeyboardButton(text="➕ Add Premium User", callback_data="admin:premium:add")
+    )
+    builder.row(
+        InlineKeyboardButton(text="◀️ Back to Admin", callback_data="admin:back")
+    )
+    return builder.as_markup()
+
+
+def premium_user_manage_keyboard(user_id: int) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="❌ Remove Premium", callback_data=f"admin:premium:remove:{user_id}")
+    )
+    builder.row(
+        InlineKeyboardButton(text="◀️ Back to Premium Users", callback_data="admin:premium")
     )
     return builder.as_markup()
 

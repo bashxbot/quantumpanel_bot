@@ -1,5 +1,6 @@
+import os
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.filters import Command
 from aiogram.enums import ParseMode
 from loguru import logger
@@ -21,6 +22,8 @@ from bot.config import config
 from bot.models import UserStatus
 
 router = Router()
+
+BANNER_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "banner.jpg")
 
 
 @router.message(Command("start"))
@@ -44,11 +47,20 @@ async def cmd_start(message: Message):
             last_purchase=user.last_purchase_at
         )
         
-        await message.answer(
-            text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=main_menu_keyboard()
-        )
+        if os.path.exists(BANNER_PATH):
+            photo = FSInputFile(BANNER_PATH)
+            await message.answer_photo(
+                photo=photo,
+                caption=text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=main_menu_keyboard()
+            )
+        else:
+            await message.answer(
+                text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=main_menu_keyboard()
+            )
 
 
 @router.callback_query(F.data == "back_to_menu")

@@ -1,69 +1,22 @@
-modules = ["nodejs-22", "python-3.11"]
-
-[agent]
-stack = "AGENT_STACK"
-automationTriggerConnectorName = "legacy_telegram"
+modules = ["python-3.11"]
 
 [nix]
 channel = "stable-24_11"
-packages = ["freetype", "jq", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "postgresql", "tcl", "tk", "zlib", "redis"]
+packages = ["freetype", "jq", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "postgresql", "redis", "tcl", "tk", "zlib"]
 
 [env]
-MASTRA_HIDE_CLOUD_CTA = "true"
+# Remove Mastra-specific variable – unused for bot
+# MASTRA_HIDE_CLOUD_CTA = "true"
 
 [deployment]
-build = ["bash", "scripts/build.sh"]
-run = ["sh", "-c", "cd .mastra/output && NODE_ENV=production node index.mjs"]
+# Just run your Python bot
+run = ["python3", "main.py"]
 deploymentTarget = "cloudrun"
 
-[[ports]]
-localPort = 3000
-externalPort = 3000
-exposeLocalhost = true
-
+# Keep only one port if your bot needs webhook later
 [[ports]]
 localPort = 5000
 externalPort = 80
+exposeLocalhost = true
 
-[[ports]]
-localPort = 8289
-
-[workflows]
-runButton = "Project"
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Start application"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Start inngest server"
-
-[[workflows.workflow]]
-name = "Start application"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "mastra dev"
-waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "automations"
-
-[[workflows.workflow]]
-name = "Start inngest server"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "./scripts/inngest.sh"
-waitForPort = 3000
-
-[workflows.workflow.metadata]
-outputType = "automations"
+# Remove unused ports, they were for Mastra Node apps

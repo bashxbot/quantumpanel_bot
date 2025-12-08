@@ -27,7 +27,9 @@ from bot.keyboards.admin_kb import (
     sellers_manage_keyboard,
     seller_manage_keyboard,
     credits_keyboard,
-    user_credits_keyboard
+    user_credits_keyboard,
+    premium_users_keyboard,
+    premium_user_manage_keyboard
 )
 from bot.config import config
 
@@ -47,6 +49,7 @@ class AdminStates(StatesGroup):
     waiting_seller_name = State()
     waiting_credit_amount = State()
     waiting_user_telegram_id = State()
+    waiting_premium_user_id = State()
 
 
 async def is_admin_check(user_id: int) -> bool:
@@ -973,3 +976,144 @@ async def manage_prices(callback: CallbackQuery):
     
     callback.data = "admin:products"
     return await manage_products(callback)
+
+
+@router.callback_query(F.data == "admin:premium")
+async def manage_premium_users(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        all_users = await user_service.get_all_users()
+        premium_users = [u for u in all_users if u.status.value == "premium"]
+        
+        users_data = [
+            {
+                "id": u.id,
+                "telegram_id": u.telegram_id,
+                "username": u.username,
+                "first_name": u.first_name,
+                "balance": u.balance
+            }
+            for u in premium_users
+        ]
+        
+        text = f"""
+{Templates.DIVIDER}
+⭐ <b>MANAGE PREMIUM USERS</b>
+{Templates.DIVIDER}
+
+Total premium users: {len(premium_users)}
+
+Select a user to manage:
+"""
+        
+        await callback.message.edit_text(
+            text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=premium_users_keyboard(users_data)
+        )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "admin:premium:add")
+async def add_premium_user_start(callback: CallbackQuery, state: FSMContext):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    await state.set_state(AdminStates.waiting_premium_user_id)
+    
+    await callback.message.edit_text(
+        Templates.info("Send the <b>Telegram ID</b> of the user to add premium status:"),
+        parse_mode=ParseMode.HTML
+    )
+    await callback.answer()
+
+
+@router.message(AdminStates.waiting_premium_user_id)
+async def add_premium_user(message: Message, state: FSMContext):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    try:
+        telegram_id = int(message.text)
+    except ValueError:
+        await message.answer(Templates.error("Please send a valid Telegram ID!"), parse_mode=ParseMode.HTML)
+        return
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        user = await user_service.get_user_by_telegram_id(telegram_id)
+        
+        if not user:
+            await message.answer(
+                Templates.error("User not found! They need to start the bot first."),
+                parse_mode=ParseMode.HTML,
+                reply_markup=back_to_admin_keyboard()
+            )
+            await state.clear()
+            return
+        
+        await user_service.set_premium(user.id, True)
+        
+        await state.clear()
+        
+        await message.answer(
+            Templates.success(f"User {user.first_name or telegram_id} is now a Premium user! ⭐"),
+            parse_mode=ParseMode.HTML,
+            reply_markup=back_to_admin_keyboard()
+        )
+
+
+@router.callback_query(F.data.startswith("admin:premium:user:"))
+async def show_premium_user(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    user_id = int(callback.data.split(":")[-1])
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        users = await user_service.get_all_users()
+        user = next((u for u in users if u.id == user_id), None)
+        
+        if user:
+            text = f"""
+{Templates.DIVIDER}
+⭐ <b>PREMIUM USER</b>
+{Templates.DIVIDER}
+
+👤 <b>Name:</b> {user.first_name or 'N/A'}
+🆔 <b>Telegram ID:</b> <code>{user.telegram_id}</code>
+👤 <b>Username:</b> @{user.username or 'N/A'}
+💰 <b>Balance:</b> <code>${user.balance:.2f}</code>
+⭐ <b>Status:</b> {user.status.value.title()}
+"""
+            
+            await callback.message.edit_text(
+                text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=premium_user_manage_keyboard(user_id)
+            )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:premium:remove:"))
+async def remove_premium_user(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    user_id = int(callback.data.split(":")[-1])
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        await user_service.set_premium(user_id, False)
+        
+        await callback.answer("✅ Premium status removed!")
+        callback.data = "admin:premium"
+        return await manage_premium_users(callback)
