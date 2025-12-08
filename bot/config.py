@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from urllib.parse import urlparse, parse_qs, urlencode
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,11 +12,19 @@ class DatabaseConfig:
     
     @property
     def async_url(self) -> str:
-        if self.url.startswith("postgres://"):
-            return self.url.replace("postgres://", "postgresql+asyncpg://", 1)
-        elif self.url.startswith("postgresql://"):
-            return self.url.replace("postgresql://", "postgresql+asyncpg://", 1)
-        return self.url
+        url = self.url
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgresql://"):
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        
+        if "sslmode=" in url:
+            url = url.replace("sslmode=disable", "").replace("sslmode=require", "")
+            url = url.replace("?&", "?").replace("&&", "&")
+            if url.endswith("?") or url.endswith("&"):
+                url = url[:-1]
+        
+        return url
 
 
 @dataclass

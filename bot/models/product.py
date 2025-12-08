@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean
+from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
@@ -24,15 +24,11 @@ class ProductPrice(Base, TimestampMixin):
     __tablename__ = "product_prices"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    product_id = Column(Integer, nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     duration = Column(String(100), nullable=False)
     price = Column(Integer, nullable=False)
     
     product = relationship("Product", back_populates="prices")
-    
-    __table_args__ = (
-        {"extend_existing": True},
-    )
     
     def __repr__(self):
         return f"<ProductPrice(product_id={self.product_id}, duration={self.duration}, price={self.price})>"
