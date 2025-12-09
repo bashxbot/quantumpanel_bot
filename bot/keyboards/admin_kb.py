@@ -218,7 +218,7 @@ def sellers_manage_keyboard(sellers: list) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def seller_manage_keyboard(seller_id: int, is_active: bool = True) -> InlineKeyboardMarkup:
+def seller_manage_keyboard(seller_id: int, is_active: bool = False) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         InlineKeyboardButton(text="✏️ Edit Username", callback_data=f"admin:seller:edit:username:{seller_id}"),
@@ -233,7 +233,7 @@ def seller_manage_keyboard(seller_id: int, is_active: bool = True) -> InlineKeyb
     )
     builder.row(
         InlineKeyboardButton(
-            text=f"{'✅ Active' if is_active else '❌ Inactive'}", 
+            text=f"{'❌ Deactivate' if is_active else '✅ Activate'}", 
             callback_data=f"admin:seller:toggle:{seller_id}"
         )
     )

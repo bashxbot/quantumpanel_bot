@@ -58,7 +58,8 @@ class SellerService:
         name: Optional[str] = None,
         description: Optional[str] = None,
         platforms: Optional[str] = None,
-        country: Optional[str] = None
+        country: Optional[str] = None,
+        is_active: Optional[bool] = None
     ) -> Optional[TrustedSeller]:
         stmt = select(TrustedSeller).where(TrustedSeller.id == seller_id)
         result = await self.session.execute(stmt)
@@ -77,6 +78,8 @@ class SellerService:
             seller.platforms = platforms
         if country is not None:
             seller.country = country
+        if is_active is not None:
+            seller.is_active = is_active
         
         await self.session.commit()
         await self.session.refresh(seller)

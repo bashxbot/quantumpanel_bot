@@ -367,7 +367,7 @@ Select a product to manage:
                 await callback.message.edit_text(
                     text,
                     parse_mode=ParseMode.HTML,
-                    reply_markup=product_manage_keyboard(product_id)
+                    reply_markup=product_manage_keyboard(product_id, product.is_active)
                 )
     
     await callback.answer()
@@ -1045,7 +1045,7 @@ async def add_seller_country(message: Message, state: FSMContext):
         )
 
 
-@router.callback_query(F.data.startswith("admin:seller:") & ~F.data.contains("add") & ~F.data.contains("remove") & ~F.data.contains("edit"))
+@router.callback_query(F.data.startswith("admin:seller:") & ~F.data.contains("add") & ~F.data.contains("remove") & ~F.data.contains("edit") & ~F.data.contains("toggle"))
 async def show_seller_detail(callback: CallbackQuery):
     if not await is_admin_check(callback.from_user.id):
         await callback.answer("⚠️ Access denied!", show_alert=True)
@@ -1059,6 +1059,9 @@ async def show_seller_detail(callback: CallbackQuery):
         seller = next((s for s in sellers if s.id == seller_id), None)
         
         if seller:
+            status_emoji = "✅" if seller.is_active else "❌"
+            status_text = "Active" if seller.is_active else "Inactive"
+            
             text = f"""
 {Templates.DIVIDER}
 ⭐ <b>SELLER DETAILS</b>
@@ -1069,16 +1072,59 @@ async def show_seller_detail(callback: CallbackQuery):
 📋 <b>Description:</b> {seller.description or 'N/A'}
 🌐 <b>Platforms:</b> {seller.platforms or 'N/A'}
 🌍 <b>Country:</b> {seller.country or 'N/A'}
+{status_emoji} <b>Status:</b> {status_text}
 """
             try:
                 await callback.message.edit_text(
                     text,
                     parse_mode=ParseMode.HTML,
-                    reply_markup=seller_manage_keyboard(seller_id)
+                    reply_markup=seller_manage_keyboard(seller_id, seller.is_active)
                 )
             except Exception:
                 pass
     await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:seller:toggle:"))
+async def toggle_seller(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    seller_id = int(callback.data.split(":")[-1])
+    
+    async with async_session() as session:
+        seller_service = SellerService(session)
+        sellers = await seller_service.get_all_sellers()
+        seller = next((s for s in sellers if s.id == seller_id), None)
+        
+        if seller:
+            new_status = not seller.is_active
+            await seller_service.update_seller(seller_id, is_active=new_status)
+            await callback.answer(f"{'✅ Activated' if new_status else '❌ Deactivated'}")
+            
+            # Refresh the seller detail view
+            status_emoji = "✅" if new_status else "❌"
+            status_text = "Active" if new_status else "Inactive"
+            
+            text = f"""
+{Templates.DIVIDER}
+⭐ <b>SELLER DETAILS</b>
+{Templates.DIVIDER}
+
+👤 <b>Username:</b> @{seller.username}
+📝 <b>Name:</b> {seller.name or 'N/A'}
+📋 <b>Description:</b> {seller.description or 'N/A'}
+🌐 <b>Platforms:</b> {seller.platforms or 'N/A'}
+🌍 <b>Country:</b> {seller.country or 'N/A'}
+{status_emoji} <b>Status:</b> {status_text}
+"""
+            
+            await callback.message.edit_text(
+                text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=seller_manage_keyboard(seller_id, new_status)
+            )
 
 
 @router.callback_query(F.data.startswith("admin:seller:edit:"))
