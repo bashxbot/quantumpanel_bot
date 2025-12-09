@@ -827,7 +827,7 @@ async def manage_sellers(callback: CallbackQuery):
             logger.debug(f"✅ Found {len(sellers)} sellers")
             
             sellers_data = [
-                {"id": s.id, "username": s.username, "name": s.name}
+                {"id": s.id, "username": s.username, "name": s.name, "is_active": s.is_active}
                 for s in sellers
             ]
             

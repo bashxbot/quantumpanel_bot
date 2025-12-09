@@ -202,9 +202,10 @@ def sellers_manage_keyboard(sellers: list) -> InlineKeyboardMarkup:
     
     for s in sellers:
         name = s.get('name') or f"@{s['username']}"
+        status_icon = "✅" if s.get('is_active') else "❌"
         builder.row(
             InlineKeyboardButton(
-                text=f"⭐ {name}", 
+                text=f"{status_icon} {name}", 
                 callback_data=f"admin:seller:{s['id']}"
             )
         )

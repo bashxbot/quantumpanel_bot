@@ -108,7 +108,7 @@ async def back_to_menu(callback: CallbackQuery):
 async def show_trusted_sellers(callback: CallbackQuery):
     async with async_session() as session:
         seller_service = SellerService(session)
-        sellers = await seller_service.get_all_sellers()
+        sellers = await seller_service.get_all_sellers(active_only=True)
         
         sellers_data = [
             {

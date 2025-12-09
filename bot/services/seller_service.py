@@ -23,14 +23,16 @@ class SellerService:
     def __init__(self, session: AsyncSession):
         self.session = session
     
-    async def get_all_sellers(self) -> List[SellerData]:
-        cache_key = "sellers:all"
+    async def get_all_sellers(self, active_only: bool = False) -> List[SellerData]:
+        cache_key = "sellers:active" if active_only else "sellers:all"
         cached = await cache.get(cache_key)
         
         if cached:
             return [SellerData(**s) for s in cached]
         
         stmt = select(TrustedSeller).order_by(TrustedSeller.created_at.desc())
+        if active_only:
+            stmt = stmt.where(TrustedSeller.is_active == True)
         result = await self.session.execute(stmt)
         sellers = list(result.scalars().all())
         
@@ -74,6 +76,7 @@ class SellerService:
         await self.session.commit()
         await self.session.refresh(seller)
         await cache.delete("sellers:all")
+        await cache.delete("sellers:active")
         logger.info(f"⭐ Seller added: {username}")
         return seller
     
@@ -110,6 +113,7 @@ class SellerService:
         await self.session.commit()
         await self.session.refresh(seller)
         await cache.delete("sellers:all")
+        await cache.delete("sellers:active")
         logger.info(f"✏️ Seller updated: {seller_id}")
         return seller
     
@@ -118,6 +122,7 @@ class SellerService:
         result = await self.session.execute(stmt)
         await self.session.commit()
         await cache.delete("sellers:all")
+        await cache.delete("sellers:active")
         
         if result.rowcount > 0:
             logger.info(f"🗑️ Seller removed: {seller_id}")
