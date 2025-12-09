@@ -202,6 +202,23 @@ async def add_product_name(message: Message, state: FSMContext):
     if not await is_admin_check(message.from_user.id):
         return
     
+    data = await state.get_data()
+    editing_product_id = data.get("editing_product_id")
+    
+    if editing_product_id:
+        async with async_session() as session:
+            product_service = ProductService(session)
+            await product_service.update_product(editing_product_id, name=message.text)
+            
+            await state.clear()
+            
+            await message.answer(
+                Templates.success(f"Product name updated to <b>{message.text}</b>!"),
+                parse_mode=ParseMode.HTML,
+                reply_markup=product_manage_keyboard(editing_product_id)
+            )
+        return
+    
     await state.update_data(product_name=message.text)
     await state.set_state(AdminStates.waiting_product_description)
     
@@ -217,7 +234,22 @@ async def add_product_description(message: Message, state: FSMContext):
         return
     
     data = await state.get_data()
+    editing_product_id = data.get("editing_product_id")
     description = None if message.text == "/skip" else message.text
+    
+    if editing_product_id:
+        async with async_session() as session:
+            product_service = ProductService(session)
+            await product_service.update_product(editing_product_id, description=description)
+            
+            await state.clear()
+            
+            await message.answer(
+                Templates.success("Product description updated!"),
+                parse_mode=ParseMode.HTML,
+                reply_markup=product_manage_keyboard(editing_product_id)
+            )
+        return
     
     async with async_session() as session:
         product_service = ProductService(session)
@@ -268,6 +300,16 @@ async def manage_single_product(callback: CallbackQuery, state: FSMContext):
         await state.update_data(editing_product_id=product_id)
         await callback.message.edit_text(
             Templates.info("Send the new product name:"),
+            parse_mode=ParseMode.HTML
+        )
+        await callback.answer()
+        return
+    
+    elif action == "edit_desc" and product_id:
+        await state.set_state(AdminStates.waiting_product_description)
+        await state.update_data(editing_product_id=product_id)
+        await callback.message.edit_text(
+            Templates.info("Send the new product description (or send /skip to remove):"),
             parse_mode=ParseMode.HTML
         )
         await callback.answer()
@@ -327,7 +369,7 @@ async def receive_product_image(message: Message, state: FSMContext):
     
     async with async_session() as session:
         product_service = ProductService(session)
-        await product_service.update_product(product_id, image_id=file_id)
+        await product_service.update_product(product_id, image_file_id=file_id)
         
         await state.clear()
         

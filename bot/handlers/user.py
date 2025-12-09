@@ -54,6 +54,8 @@ async def cmd_start(message: Message):
             last_name=message.from_user.last_name
         )
         
+        is_premium = user.status == UserStatus.PREMIUM
+        
         text = Templates.user_dashboard(
             first_name=user.first_name or "User",
             telegram_id=user.telegram_id,
@@ -68,13 +70,13 @@ async def cmd_start(message: Message):
                 photo=photo,
                 caption=text,
                 parse_mode=ParseMode.HTML,
-                reply_markup=main_menu_keyboard()
+                reply_markup=main_menu_keyboard(is_premium=is_premium)
             )
         else:
             await message.answer(
                 text,
                 parse_mode=ParseMode.HTML,
-                reply_markup=main_menu_keyboard()
+                reply_markup=main_menu_keyboard(is_premium=is_premium)
             )
 
 
@@ -88,6 +90,8 @@ async def back_to_menu(callback: CallbackQuery):
             first_name=callback.from_user.first_name
         )
         
+        is_premium = user.status == UserStatus.PREMIUM
+        
         text = Templates.user_dashboard(
             first_name=user.first_name or "User",
             telegram_id=user.telegram_id,
@@ -96,7 +100,7 @@ async def back_to_menu(callback: CallbackQuery):
             last_purchase=user.last_purchase_at
         )
         
-        await edit_message(callback, text, main_menu_keyboard())
+        await edit_message(callback, text, main_menu_keyboard(is_premium=is_premium))
     await callback.answer()
 
 

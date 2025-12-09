@@ -3,7 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from typing import List
 
 
-def main_menu_keyboard() -> InlineKeyboardMarkup:
+def main_menu_keyboard(is_premium: bool = False) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         InlineKeyboardButton(text="⭐ Trusted Sellers", callback_data="trusted_sellers")
@@ -15,9 +15,10 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="💳 Add Balance", callback_data="add_balance"),
         InlineKeyboardButton(text="📦 My Orders", callback_data="my_orders")
     )
-    builder.row(
-        InlineKeyboardButton(text="🚀 Upgrade to Premium", callback_data="upgrade_premium")
-    )
+    if not is_premium:
+        builder.row(
+            InlineKeyboardButton(text="🚀 Upgrade to Premium", callback_data="upgrade_premium")
+        )
     return builder.as_markup()
 
 
