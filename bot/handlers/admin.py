@@ -846,7 +846,23 @@ async def add_seller_username(message: Message, state: FSMContext):
     if not await is_admin_check(message.from_user.id):
         return
     
+    data = await state.get_data()
+    editing_seller_id = data.get("editing_seller_id")
     username = message.text.replace("@", "").strip()
+    
+    if editing_seller_id:
+        async with async_session() as session:
+            seller_service = SellerService(session)
+            await seller_service.update_seller(editing_seller_id, username=username)
+            
+            await state.clear()
+            await message.answer(
+                Templates.success(f"Seller username updated to @{username}!"),
+                parse_mode=ParseMode.HTML,
+                reply_markup=seller_manage_keyboard(editing_seller_id)
+            )
+        return
+    
     await state.update_data(seller_username=username)
     await state.set_state(AdminStates.waiting_seller_name)
     
@@ -861,7 +877,23 @@ async def add_seller_name(message: Message, state: FSMContext):
     if not await is_admin_check(message.from_user.id):
         return
     
+    data = await state.get_data()
+    editing_seller_id = data.get("editing_seller_id")
     name = None if message.text == "/skip" else message.text
+    
+    if editing_seller_id:
+        async with async_session() as session:
+            seller_service = SellerService(session)
+            await seller_service.update_seller(editing_seller_id, name=name)
+            
+            await state.clear()
+            await message.answer(
+                Templates.success("Seller name updated!"),
+                parse_mode=ParseMode.HTML,
+                reply_markup=seller_manage_keyboard(editing_seller_id)
+            )
+        return
+    
     await state.update_data(seller_name=name)
     await state.set_state(AdminStates.waiting_seller_description)
     
@@ -876,7 +908,23 @@ async def add_seller_description(message: Message, state: FSMContext):
     if not await is_admin_check(message.from_user.id):
         return
     
+    data = await state.get_data()
+    editing_seller_id = data.get("editing_seller_id")
     description = None if message.text == "/skip" else message.text
+    
+    if editing_seller_id:
+        async with async_session() as session:
+            seller_service = SellerService(session)
+            await seller_service.update_seller(editing_seller_id, description=description)
+            
+            await state.clear()
+            await message.answer(
+                Templates.success("Seller description updated!"),
+                parse_mode=ParseMode.HTML,
+                reply_markup=seller_manage_keyboard(editing_seller_id)
+            )
+        return
+    
     await state.update_data(seller_description=description)
     await state.set_state(AdminStates.waiting_seller_platforms)
     
@@ -891,7 +939,23 @@ async def add_seller_platforms(message: Message, state: FSMContext):
     if not await is_admin_check(message.from_user.id):
         return
     
+    data = await state.get_data()
+    editing_seller_id = data.get("editing_seller_id")
     platforms = None if message.text == "/skip" else message.text
+    
+    if editing_seller_id:
+        async with async_session() as session:
+            seller_service = SellerService(session)
+            await seller_service.update_seller(editing_seller_id, platforms=platforms)
+            
+            await state.clear()
+            await message.answer(
+                Templates.success("Seller platforms updated!"),
+                parse_mode=ParseMode.HTML,
+                reply_markup=seller_manage_keyboard(editing_seller_id)
+            )
+        return
+    
     await state.update_data(seller_platforms=platforms)
     await state.set_state(AdminStates.waiting_seller_country)
     
@@ -907,7 +971,21 @@ async def add_seller_country(message: Message, state: FSMContext):
         return
     
     data = await state.get_data()
+    editing_seller_id = data.get("editing_seller_id")
     country = None if message.text == "/skip" else message.text
+    
+    if editing_seller_id:
+        async with async_session() as session:
+            seller_service = SellerService(session)
+            await seller_service.update_seller(editing_seller_id, country=country)
+            
+            await state.clear()
+            await message.answer(
+                Templates.success("Seller country updated!"),
+                parse_mode=ParseMode.HTML,
+                reply_markup=seller_manage_keyboard(editing_seller_id)
+            )
+        return
     
     async with async_session() as session:
         seller_service = SellerService(session)
@@ -928,7 +1006,7 @@ async def add_seller_country(message: Message, state: FSMContext):
         )
 
 
-@router.callback_query(F.data.startswith("admin:seller:") & ~F.data.contains("add") & ~F.data.contains("remove"))
+@router.callback_query(F.data.startswith("admin:seller:") & ~F.data.contains("add") & ~F.data.contains("remove") & ~F.data.contains("edit"))
 async def show_seller_detail(callback: CallbackQuery):
     if not await is_admin_check(callback.from_user.id):
         await callback.answer("⚠️ Access denied!", show_alert=True)
@@ -953,11 +1031,50 @@ async def show_seller_detail(callback: CallbackQuery):
 🌐 <b>Platforms:</b> {seller.platforms or 'N/A'}
 🌍 <b>Country:</b> {seller.country or 'N/A'}
 """
-            await callback.message.edit_text(
-                text,
-                parse_mode=ParseMode.HTML,
-                reply_markup=seller_manage_keyboard(seller_id)
-            )
+            try:
+                await callback.message.edit_text(
+                    text,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=seller_manage_keyboard(seller_id)
+                )
+            except Exception:
+                pass
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:seller:edit:"))
+async def edit_seller_field(callback: CallbackQuery, state: FSMContext):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    parts = callback.data.split(":")
+    field = parts[3]
+    seller_id = int(parts[4])
+    
+    await state.update_data(editing_seller_id=seller_id, editing_seller_field=field)
+    
+    field_prompts = {
+        "username": "Send the new <b>username</b> (without @):",
+        "name": "Send the new <b>display name</b> (or /skip to remove):",
+        "description": "Send the new <b>description</b> (or /skip to remove):",
+        "platforms": "Send the new <b>platforms</b> (or /skip to remove):",
+        "country": "Send the new <b>country</b> (or /skip to remove):"
+    }
+    
+    state_mapping = {
+        "username": AdminStates.waiting_seller_username,
+        "name": AdminStates.waiting_seller_name,
+        "description": AdminStates.waiting_seller_description,
+        "platforms": AdminStates.waiting_seller_platforms,
+        "country": AdminStates.waiting_seller_country
+    }
+    
+    await state.set_state(state_mapping[field])
+    await callback.message.edit_text(
+        Templates.info(field_prompts[field]),
+        parse_mode=ParseMode.HTML
+    )
     await callback.answer()
 
 
