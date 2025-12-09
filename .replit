@@ -12,11 +12,9 @@ packages = ["freetype", "jq", "lcms2", "libimagequant", "libjpeg", "libtiff", "l
 run = ["sh", "-c", "python3 web_server.py"]
 deploymentTarget = "cloudrun"
 
-# Keep only one port if your bot needs webhook later
 [[ports]]
 localPort = 5000
 externalPort = 80
-exposeLocalhost = true
 
 [workflows]
 runButton = "Run"
