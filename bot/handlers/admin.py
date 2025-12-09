@@ -329,7 +329,17 @@ async def manage_single_product(callback: CallbackQuery, state: FSMContext):
         await state.update_data(current_product_id=product_id)
         await state.set_state(AdminStates.waiting_price_duration)
         await callback.message.edit_text(
-            Templates.info("Send the duration name (e.g., '1 Month', '3 Months', 'Lifetime'):"),
+            Templates.info(
+                "<b>📋 Send pricing in this format:</b>\n\n"
+                "<code>&lt;duration&gt; &lt;credits&gt;</code>\n\n"
+                "<b>Examples:</b>\n"
+                "<code>1d 1</code> → 1 Day for $1\n"
+                "<code>7d 5</code> → 7 Days for $5\n"
+                "<code>1m 10</code> → 1 Month for $10\n"
+                "<code>3m 25</code> → 3 Months for $25\n\n"
+                "<i>Send multiple lines to add multiple prices:</i>\n"
+                "<code>1d 1\n3d 2\n7d 5\n30d 10</code>"
+            ),
             parse_mode=ParseMode.HTML
         )
         await callback.answer()
@@ -380,45 +390,87 @@ async def receive_product_image(message: Message, state: FSMContext):
         )
 
 
+def parse_duration(duration_str: str) -> tuple:
+    """Parse duration string like '1d', '7d', '1m', '3m' to readable format and sort key"""
+    import re
+    match = re.match(r'^(\d+)(d|m)$', duration_str.lower().strip())
+    if not match:
+        return None, None, None
+    
+    num = int(match.group(1))
+    unit = match.group(2)
+    
+    if unit == 'd':
+        readable = f"{num} Day{'s' if num > 1 else ''}"
+        sort_key = num
+    else:
+        readable = f"{num} Month{'s' if num > 1 else ''}"
+        sort_key = num * 30
+    
+    return duration_str.lower(), readable, sort_key
+
+
 @router.message(AdminStates.waiting_price_duration)
 async def add_price_duration(message: Message, state: FSMContext):
     if not await is_admin_check(message.from_user.id):
         return
     
-    await state.update_data(price_duration=message.text)
-    await state.set_state(AdminStates.waiting_price_amount)
-    
-    await message.answer(
-        Templates.info("Now send the <b>price</b> (number only):"),
-        parse_mode=ParseMode.HTML
-    )
-
-
-@router.message(AdminStates.waiting_price_amount)
-async def add_price_amount(message: Message, state: FSMContext):
-    if not await is_admin_check(message.from_user.id):
-        return
-    
-    try:
-        price = int(message.text)
-    except ValueError:
-        await message.answer(Templates.error("Please send a valid number!"), parse_mode=ParseMode.HTML)
-        return
-    
     data = await state.get_data()
+    product_id = data.get("current_product_id")
+    
+    lines = message.text.strip().split('\n')
+    added_prices = []
+    errors = []
     
     async with async_session() as session:
         product_service = ProductService(session)
-        await product_service.add_price(
-            product_id=data["current_product_id"],
-            duration=data["price_duration"],
-            price=price
-        )
         
-        await state.clear()
-        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            
+            parts = line.split()
+            if len(parts) != 2:
+                errors.append(f"Invalid format: {line}")
+                continue
+            
+            duration_input, price_str = parts
+            
+            parsed = parse_duration(duration_input)
+            if not parsed[0]:
+                errors.append(f"Invalid duration: {duration_input}")
+                continue
+            
+            try:
+                price = int(price_str)
+            except ValueError:
+                errors.append(f"Invalid price: {price_str}")
+                continue
+            
+            duration_code, readable_duration, _ = parsed
+            
+            await product_service.add_price(
+                product_id=product_id,
+                duration=f"{duration_code}|{readable_duration}",
+                price=price
+            )
+            added_prices.append(f"✅ {readable_duration} - ${price}")
+    
+    await state.clear()
+    
+    if added_prices:
+        result_text = "\n".join(added_prices)
+        if errors:
+            result_text += "\n\n⚠️ <b>Errors:</b>\n" + "\n".join(errors)
         await message.answer(
-            Templates.success(f"Price added: {data['price_duration']} - ${price}"),
+            Templates.success(f"<b>Prices added:</b>\n\n{result_text}"),
+            parse_mode=ParseMode.HTML,
+            reply_markup=product_manage_keyboard(product_id)
+        )
+    else:
+        await message.answer(
+            Templates.error("No valid prices found!\n\n<b>Format:</b> <code>&lt;duration&gt; &lt;credits&gt;</code>\n\n<b>Examples:</b>\n<code>1d 1</code>\n<code>7d 5</code>\n<code>1m 10</code>\n<code>3m 25</code>"),
             parse_mode=ParseMode.HTML,
             reply_markup=back_to_admin_keyboard()
         )

@@ -206,13 +206,11 @@ async def initiate_purchase(callback: CallbackQuery):
             await callback.answer(f"❌ Insufficient balance! Need ${price.price}, have ${user.balance:.2f}", show_alert=True)
             return
         
-        text = Templates.confirm(
-            f"You are about to purchase:\n\n"
-            f"📦 <b>{product.name}</b>\n"
-            f"⏱ Duration: {price.duration}\n"
-            f"💰 Price: <code>${price.price}</code>\n\n"
-            f"Your balance: <code>${user.balance:.2f}</code>\n"
-            f"After purchase: <code>${user.balance - price.price:.2f}</code>"
+        text = Templates.purchase_summary(
+            product_name=product.name,
+            duration=price.duration,
+            price=price.price,
+            current_balance=user.balance
         )
         
         await edit_message(callback, text, confirm_purchase_keyboard(product_id, price_id))
@@ -267,17 +265,13 @@ async def confirm_purchase(callback: CallbackQuery):
         
         await user_service.update_balance(user.id, -price.price)
         
-        success_msg = f"""
-✅ <b>Purchase Successful!</b>
-
-📦 <b>Product:</b> {product.name}
-⏱ <b>Duration:</b> {price.duration}
-💰 <b>Price:</b> ${price.price}
-"""
-        if key_value:
-            success_msg += f"\n🔑 <b>Your Key:</b>\n<code>{key_value}</code>"
-        else:
-            success_msg += f"\n📞 <b>Contact admin for your key:</b> {config.bot.admin_username}"
+        success_msg = Templates.purchase_success(
+            product_name=product.name,
+            duration=price.duration,
+            price=price.price,
+            key_value=key_value,
+            admin_contact=config.bot.admin_username
+        )
         
         logger.info(f"✅ Purchase completed: User {user.telegram_id} bought {product.name}")
         

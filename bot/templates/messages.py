@@ -3,16 +3,24 @@ from typing import List, Optional
 
 
 class Templates:
-    DIVIDER = "━━━━━━━━━━━━━━━━━━━━━━━━━"
-    DIVIDER_THIN = "─────────────────────────"
+    DIVIDER = "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    DIVIDER_THIN = "───────────────────────────"
+    STAR_LINE = "✦━━━━━━━━━━━━━━━━━━━━━━━━✦"
+    
+    @staticmethod
+    def get_readable_duration(duration: str) -> str:
+        """Convert duration code like '7d|7 Days' to readable format"""
+        if '|' in duration:
+            return duration.split('|')[1]
+        return duration
     
     @staticmethod
     def welcome_banner() -> str:
         return """
-╔══════════════════════════════════╗
-║   🚀 <b>QUANTUM PANEL</b> 🚀      ║
-║    Premium Service Center        ║
-╚══════════════════════════════════╝
+╔═══════════════════════════════════╗
+║    🚀 <b>QUANTUM PANEL</b> 🚀       ║
+║     Premium Service Center        ║
+╚═══════════════════════════════════╝
 """
     
     @staticmethod
@@ -105,65 +113,57 @@ product prices and make purchases.</i>
         
         if not products:
             return f"""
-{Templates.DIVIDER}
-🛍 <b>PRODUCTS</b>
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
+     🛍 <b>PRODUCTS</b>
+{Templates.STAR_LINE}
 
 <i>No products available at the moment.</i>
 
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
 """
         
-        product_text = ""
-        for p in products:
-            product_text += f"\n📦 <b>{p['name']}</b>\n"
-            if p.get('description'):
-                product_text += f"   <i>{p['description']}</i>\n"
-            if p.get('prices'):
-                for price in p['prices']:
-                    product_text += f"   • {price['duration']}: <code>${price['price']}</code>\n"
-            product_text += "\n"
-        
         return f"""
-{Templates.DIVIDER}
-🛍 <b>PRODUCTS</b>
-{Templates.DIVIDER}
-{product_text}
-{Templates.DIVIDER}
-<i>Select a product to purchase!</i>
+{Templates.STAR_LINE}
+     🛍 <b>PRODUCTS</b>
+{Templates.STAR_LINE}
+
+<i>Select a product below to view details!</i>
+
+{Templates.STAR_LINE}
 """
     
     @staticmethod
     def my_orders(orders: list) -> str:
         if not orders:
             return f"""
-{Templates.DIVIDER}
-📦 <b>MY ORDERS</b>
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
+     📦 <b>MY ORDERS</b>
+{Templates.STAR_LINE}
 
 <i>You haven't made any purchases yet.</i>
 
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
 """
         
         order_text = ""
         for i, order in enumerate(orders, 1):
             date_str = order.get('date', 'Unknown')
+            readable_duration = Templates.get_readable_duration(order['duration'])
             order_text += f"""
 {i}. <b>{order['product_name']}</b>
    📅 {date_str}
-   ⏱ Duration: {order['duration']}
-   💰 Price: <code>${order['price']:.2f}</code>
+   ⏱ {readable_duration}
+   💵 <code>${order['price']:.2f}</code>
 """
             if order.get('key'):
-                order_text += f"   🔑 Key: <code>{order['key']}</code>\n"
+                order_text += f"   🔑 <code>{order['key']}</code>\n"
         
         return f"""
-{Templates.DIVIDER}
-📦 <b>MY ORDERS</b> (Last 10)
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
+     📦 <b>MY ORDERS</b>
+{Templates.STAR_LINE}
 {order_text}
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
 """
     
     @staticmethod
@@ -255,24 +255,83 @@ Select an option to manage your panel:
     
     @staticmethod
     def product_detail(product: dict) -> str:
-        prices_text = ""
-        if product.get('prices'):
-            for p in product['prices']:
-                prices_text += f"\n   • {p['duration']}: <code>${p['price']}</code>"
-        else:
-            prices_text = "\n   <i>No prices set</i>"
+        desc = product.get('description', 'No description available')
         
         return f"""
-{Templates.DIVIDER}
-📦 <b>{product['name']}</b>
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
+     📦 <b>{product['name']}</b>
+{Templates.STAR_LINE}
 
-📝 <b>Description:</b>
-{product.get('description', 'No description')}
+📝 <b>Description</b>
+{Templates.DIVIDER_THIN}
+{desc}
 
-💰 <b>Prices:</b>{prices_text}
+💰 <b>Select Your Plan</b>
+{Templates.DIVIDER_THIN}
+<i>Choose a duration below to purchase:</i>
 
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
+"""
+    
+    @staticmethod
+    def purchase_summary(product_name: str, duration: str, price: float, current_balance: float) -> str:
+        remaining = current_balance - price
+        readable_duration = Templates.get_readable_duration(duration)
+        
+        return f"""
+{Templates.STAR_LINE}
+     🛒 <b>PURCHASE SUMMARY</b>
+{Templates.STAR_LINE}
+
+📦 <b>Product:</b> {product_name}
+⏱ <b>Duration:</b> {readable_duration}
+💵 <b>Price:</b> <code>${price:.2f}</code>
+
+{Templates.DIVIDER_THIN}
+
+💳 <b>Your Balance:</b> <code>${current_balance:.2f}</code>
+💰 <b>After Purchase:</b> <code>${remaining:.2f}</code>
+
+{Templates.STAR_LINE}
+
+<i>Press confirm to complete your purchase!</i>
+"""
+    
+    @staticmethod
+    def purchase_success(product_name: str, duration: str, price: float, key_value: str = None, admin_contact: str = None) -> str:
+        readable_duration = Templates.get_readable_duration(duration)
+        
+        key_section = ""
+        if key_value:
+            key_section = f"""
+🔑 <b>Your Key:</b>
+<code>{key_value}</code>
+
+<i>Copy the key above and enjoy!</i>
+"""
+        else:
+            key_section = f"""
+📞 <b>Contact Admin:</b>
+{admin_contact}
+
+<i>Your key will be delivered shortly!</i>
+"""
+        
+        return f"""
+{Templates.STAR_LINE}
+     ✅ <b>PURCHASE SUCCESSFUL!</b>
+{Templates.STAR_LINE}
+
+📦 <b>Product:</b> {product_name}
+⏱ <b>Duration:</b> {readable_duration}
+💵 <b>Paid:</b> <code>${price:.2f}</code>
+
+{Templates.DIVIDER_THIN}
+
+{key_section}
+
+{Templates.STAR_LINE}
+<i>Thank you for your purchase!</i>
 """
     
     @staticmethod

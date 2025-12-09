@@ -52,22 +52,49 @@ def products_keyboard(products: list, is_premium: bool = False) -> InlineKeyboar
     return builder.as_markup()
 
 
+def get_readable_duration(duration: str) -> str:
+    """Convert duration code like '7d|7 Days' to readable format"""
+    if '|' in duration:
+        return duration.split('|')[1]
+    return duration
+
+
+def get_sort_key(duration: str) -> int:
+    """Get sort key for duration to order prices properly"""
+    if '|' in duration:
+        code = duration.split('|')[0]
+    else:
+        code = duration.lower()
+    
+    import re
+    match = re.match(r'^(\d+)(d|m)$', code)
+    if match:
+        num = int(match.group(1))
+        unit = match.group(2)
+        return num if unit == 'd' else num * 30
+    return 999
+
+
 def product_detail_keyboard(product_id: int, prices: list, is_premium: bool = True) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     
+    sorted_prices = sorted(prices, key=lambda p: get_sort_key(p['duration']))
+    
     if is_premium:
-        for price in prices:
+        for price in sorted_prices:
+            readable = get_readable_duration(price['duration'])
             builder.row(
                 InlineKeyboardButton(
-                    text=f"🛒 Buy {price['duration']} - ${price['price']}",
+                    text=f"🛒 {readable} — ${price['price']}",
                     callback_data=f"buy:{product_id}:{price['id']}"
                 )
             )
     else:
-        for price in prices:
+        for price in sorted_prices:
+            readable = get_readable_duration(price['duration'])
             builder.row(
                 InlineKeyboardButton(
-                    text=f"💰 {price['duration']} - ${price['price']}",
+                    text=f"💰 {readable} — ${price['price']}",
                     callback_data="noop"
                 )
             )
