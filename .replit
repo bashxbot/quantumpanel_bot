@@ -9,8 +9,7 @@ packages = ["freetype", "jq", "lcms2", "libimagequant", "libjpeg", "libtiff", "l
 # MASTRA_HIDE_CLOUD_CTA = "true"
 
 [deployment]
-# Just run your Python bot
-run = ["python3", "main.py"]
+run = ["sh", "-c", "python3 web_server.py"]
 deploymentTarget = "cloudrun"
 
 # Keep only one port if your bot needs webhook later
@@ -18,5 +17,17 @@ deploymentTarget = "cloudrun"
 localPort = 5000
 externalPort = 80
 exposeLocalhost = true
+
+[workflows]
+runButton = "Run"
+
+[[workflows.workflow]]
+name = "Run"
+author = 51095538
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 web_server.py"
 
 # Remove unused ports, they were for Mastra Node apps
