@@ -95,26 +95,6 @@ async def admin_back(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-@router.callback_query(F.data == "admin:quick_add")
-async def quick_add_menu(callback: CallbackQuery):
-    if not await is_admin_check(callback.from_user.id):
-        await callback.answer("⚠️ Access denied!", show_alert=True)
-        return
-    
-    text = f"""
-{Templates.DIVIDER}
-➕ <b>QUICK ADD MENU</b>
-{Templates.DIVIDER}
-
-Select what you want to add:
-"""
-    
-    await callback.message.edit_text(
-        text,
-        parse_mode=ParseMode.HTML,
-        reply_markup=quick_add_keyboard()
-    )
-    await callback.answer()
 
 
 @router.callback_query(F.data == "admin:stats")
@@ -147,7 +127,7 @@ async def show_statistics(callback: CallbackQuery):
         await callback.message.edit_text(
             text,
             parse_mode=ParseMode.HTML,
-            reply_markup=back_to_admin_keyboard()
+            reply_markup=statistics_keyboard()
         )
     await callback.answer()
 
@@ -1289,3 +1269,209 @@ async def remove_premium_user(callback: CallbackQuery):
         await callback.answer("✅ Premium status removed!")
         callback.data = "admin:premium"
         return await manage_premium_users(callback)
+
+
+# =============================================
+# BROADCAST HANDLERS
+# =============================================
+
+@router.callback_query(F.data == "admin:broadcast")
+async def broadcast_menu(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    text = f"""
+{Templates.DIVIDER}
+📣 <b>BROADCAST MESSAGE</b>
+{Templates.DIVIDER}
+
+Send a message to all users of the bot.
+
+Choose the type of broadcast:
+"""
+    
+    await callback.message.edit_text(
+        text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=broadcast_keyboard()
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "admin:broadcast:text")
+async def broadcast_text_start(callback: CallbackQuery, state: FSMContext):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    await state.set_state(AdminStates.waiting_broadcast_text)
+    
+    await callback.message.edit_text(
+        Templates.info("Send the <b>text message</b> you want to broadcast to all users:"),
+        parse_mode=ParseMode.HTML,
+        reply_markup=broadcast_cancel_keyboard()
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "admin:broadcast:photo")
+async def broadcast_photo_start(callback: CallbackQuery, state: FSMContext):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    await state.set_state(AdminStates.waiting_broadcast_photo)
+    
+    await callback.message.edit_text(
+        Templates.info("Send a <b>photo with caption</b> to broadcast to all users:"),
+        parse_mode=ParseMode.HTML,
+        reply_markup=broadcast_cancel_keyboard()
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "admin:broadcast:cancel")
+async def broadcast_cancel(callback: CallbackQuery, state: FSMContext):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    await state.clear()
+    await callback.answer("❌ Broadcast cancelled!")
+    callback.data = "admin:back"
+    return await admin_back(callback, state)
+
+
+@router.message(AdminStates.waiting_broadcast_text)
+async def process_broadcast_text(message: Message, state: FSMContext):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    import asyncio
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        all_users = await user_service.get_all_users()
+        
+        total = len(all_users)
+        sent = 0
+        failed = 0
+        
+        progress_msg = await message.answer(
+            Templates.broadcast_progress(total, sent, failed),
+            parse_mode=ParseMode.HTML
+        )
+        
+        for i, user in enumerate(all_users):
+            try:
+                await message.bot.send_message(
+                    chat_id=user.telegram_id,
+                    text=message.text,
+                    parse_mode=ParseMode.HTML
+                )
+                sent += 1
+            except Exception as e:
+                logger.warning(f"Failed to send broadcast to {user.telegram_id}: {e}")
+                failed += 1
+            
+            if (i + 1) % 10 == 0 or i == total - 1:
+                try:
+                    await progress_msg.edit_text(
+                        Templates.broadcast_progress(total, sent, failed),
+                        parse_mode=ParseMode.HTML
+                    )
+                except:
+                    pass
+            
+            await asyncio.sleep(0.05)
+        
+        await progress_msg.edit_text(
+            Templates.broadcast_complete(total, sent, failed),
+            parse_mode=ParseMode.HTML,
+            reply_markup=back_to_admin_keyboard()
+        )
+    
+    await state.clear()
+    logger.info(f"📣 Broadcast completed: {sent}/{total} sent, {failed} failed")
+
+
+@router.message(AdminStates.waiting_broadcast_photo, F.photo)
+async def process_broadcast_photo(message: Message, state: FSMContext):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    import asyncio
+    
+    photo_file_id = message.photo[-1].file_id
+    caption = message.caption or ""
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        all_users = await user_service.get_all_users()
+        
+        total = len(all_users)
+        sent = 0
+        failed = 0
+        
+        progress_msg = await message.answer(
+            Templates.broadcast_progress(total, sent, failed),
+            parse_mode=ParseMode.HTML
+        )
+        
+        for i, user in enumerate(all_users):
+            try:
+                await message.bot.send_photo(
+                    chat_id=user.telegram_id,
+                    photo=photo_file_id,
+                    caption=caption,
+                    parse_mode=ParseMode.HTML
+                )
+                sent += 1
+            except Exception as e:
+                logger.warning(f"Failed to send broadcast photo to {user.telegram_id}: {e}")
+                failed += 1
+            
+            if (i + 1) % 10 == 0 or i == total - 1:
+                try:
+                    await progress_msg.edit_text(
+                        Templates.broadcast_progress(total, sent, failed),
+                        parse_mode=ParseMode.HTML
+                    )
+                except:
+                    pass
+            
+            await asyncio.sleep(0.05)
+        
+        await progress_msg.edit_text(
+            Templates.broadcast_complete(total, sent, failed),
+            parse_mode=ParseMode.HTML,
+            reply_markup=back_to_admin_keyboard()
+        )
+    
+    await state.clear()
+    logger.info(f"📣 Photo broadcast completed: {sent}/{total} sent, {failed} failed")
+
+
+# =============================================
+# TOP SELLERS STATISTICS HANDLER
+# =============================================
+
+@router.callback_query(F.data == "admin:stats:top_sellers")
+async def show_top_sellers(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    async with async_session() as session:
+        order_service = OrderService(session)
+        top_sellers = await order_service.get_top_sellers(10)
+        
+        text = Templates.top_sellers(top_sellers)
+        
+        await callback.message.edit_text(
+            text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=statistics_keyboard()
+        )
+    await callback.answer()
