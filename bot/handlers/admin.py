@@ -813,20 +813,25 @@ async def remove_admin(callback: CallbackQuery):
 
 @router.callback_query(F.data == "admin:sellers")
 async def manage_sellers(callback: CallbackQuery):
+    logger.debug(f"🔧 manage_sellers called by user {callback.from_user.id}")
+    
     if not await is_admin_check(callback.from_user.id):
         await callback.answer("⚠️ Access denied!", show_alert=True)
         return
     
-    async with async_session() as session:
-        seller_service = SellerService(session)
-        sellers = await seller_service.get_all_sellers()
-        
-        sellers_data = [
-            {"id": s.id, "username": s.username, "name": s.name}
-            for s in sellers
-        ]
-        
-        text = f"""
+    try:
+        async with async_session() as session:
+            seller_service = SellerService(session)
+            logger.debug("📝 Fetching sellers from database...")
+            sellers = await seller_service.get_all_sellers()
+            logger.debug(f"✅ Found {len(sellers)} sellers")
+            
+            sellers_data = [
+                {"id": s.id, "username": s.username, "name": s.name}
+                for s in sellers
+            ]
+            
+            text = f"""
 {Templates.DIVIDER}
 ⭐ <b>MANAGE TRUSTED SELLERS</b>
 {Templates.DIVIDER}
@@ -835,13 +840,18 @@ Total sellers: {len(sellers)}
 
 Select a seller to manage:
 """
-        
-        await callback.message.edit_text(
-            text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=sellers_manage_keyboard(sellers_data)
-        )
-    await callback.answer()
+            
+            logger.debug("📝 Editing message with sellers keyboard...")
+            await callback.message.edit_text(
+                text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=sellers_manage_keyboard(sellers_data)
+            )
+            logger.debug("✅ Message edited successfully")
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"❌ Error in manage_sellers: {e}")
+        await callback.answer(f"Error: {str(e)[:100]}", show_alert=True)
 
 
 @router.callback_query(F.data == "admin:seller:add")
