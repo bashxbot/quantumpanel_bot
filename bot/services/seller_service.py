@@ -1,33 +1,59 @@
-from typing import Optional, List
+from typing import Optional, List, Any
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
+from dataclasses import dataclass
 
 from bot.models import TrustedSeller
 from bot.services.cache import cache
+
+
+@dataclass
+class SellerData:
+    id: int
+    username: str
+    name: Optional[str]
+    description: Optional[str]
+    platforms: Optional[str] = None
+    country: Optional[str] = None
+    is_active: bool = False
 
 
 class SellerService:
     def __init__(self, session: AsyncSession):
         self.session = session
     
-    async def get_all_sellers(self) -> List[TrustedSeller]:
+    async def get_all_sellers(self) -> List[SellerData]:
         cache_key = "sellers:all"
         cached = await cache.get(cache_key)
         
         if cached:
-            return [TrustedSeller(**s) for s in cached]
+            return [SellerData(**s) for s in cached]
         
         stmt = select(TrustedSeller).order_by(TrustedSeller.created_at.desc())
         result = await self.session.execute(stmt)
         sellers = list(result.scalars().all())
         
-        await cache.set(cache_key, [
-            {"id": s.id, "username": s.username, "name": s.name, "description": s.description}
+        sellers_data = [
+            SellerData(
+                id=s.id,
+                username=s.username,
+                name=s.name,
+                description=s.description,
+                platforms=s.platforms,
+                country=s.country,
+                is_active=s.is_active
+            )
             for s in sellers
+        ]
+        
+        await cache.set(cache_key, [
+            {"id": s.id, "username": s.username, "name": s.name, "description": s.description,
+             "platforms": s.platforms, "country": s.country, "is_active": s.is_active}
+            for s in sellers_data
         ], expire=300)
         
-        return sellers
+        return sellers_data
     
     async def add_seller(
         self,

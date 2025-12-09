@@ -21,7 +21,7 @@ Preferred communication style: Simple, everyday language.
 ### Database Architecture
 - **ORM**: SQLAlchemy 2.0+ with async extensions (AsyncSession)
 - **Connection Pool**: NullPool to prevent connection issues in serverless/container environments
-- **Migrations**: Alembic for schema version control
+- **Schema Management**: Auto-creates tables on startup via `Base.metadata.create_all()`
 - **Models**: Seven core entities with relationships:
   - User (balance, premium status, reseller flag)
   - Admin (with root admin protection)
@@ -104,11 +104,9 @@ Preferred communication style: Simple, everyday language.
 ### Python Dependencies
 - **aiogram**: Telegram bot framework (v3.x)
 - **sqlalchemy**: Async ORM (v2.0+)
-- **alembic**: Database migrations
-- **redis/aioredis**: Async Redis client
+- **redis**: Async Redis client
 - **python-dotenv**: Environment configuration
 - **loguru**: Advanced logging
-- **Pillow**: Image processing (for future image generation features)
 - **asyncpg**: PostgreSQL async driver (via SQLAlchemy)
 
 ### Environment Configuration
