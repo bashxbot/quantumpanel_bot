@@ -265,10 +265,33 @@ async def manage_single_product(callback: CallbackQuery, state: FSMContext):
             product_service = ProductService(session)
             product = await product_service.get_product(product_id)
             if product:
-                await product_service.update_product(product_id, is_active=not product.is_active)
-                await callback.answer(f"{'✅ Activated' if not product.is_active else '❌ Deactivated'}")
-                callback.data = "admin:products"
-                return await manage_products(callback)
+                new_status = not product.is_active
+                await product_service.update_product(product_id, is_active=new_status)
+                await callback.answer(f"{'✅ Activated' if new_status else '❌ Deactivated'}")
+                
+                # Refresh the products list
+                products = await product_service.get_all_products(active_only=False)
+                products_data = [
+                    {"id": p.id, "name": p.name, "is_active": p.is_active}
+                    for p in products
+                ]
+                
+                text = f"""
+{Templates.DIVIDER}
+🛠 <b>MANAGE PRODUCTS</b>
+{Templates.DIVIDER}
+
+Total products: {len(products)}
+
+Select a product to manage:
+"""
+                
+                await callback.message.edit_text(
+                    text,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=products_manage_keyboard(products_data)
+                )
+                return
     
     elif action == "delete" and product_id:
         async with async_session() as session:
@@ -959,24 +982,36 @@ async def add_seller_platforms(message: Message, state: FSMContext):
     await state.update_data(seller_platforms=platforms)
     await state.set_state(AdminStates.waiting_seller_country)
     
-    from bot.keyboards.admin_kb import country_selection_keyboard
     await message.answer(
-        Templates.info("Select the seller's <b>country</b>:"),
-        parse_mode=ParseMode.HTML,
-        reply_markup=country_selection_keyboard()
+        Templates.info(
+            "Send the seller's <b>country</b>:\n\n"
+            "<b>Available countries:</b>\n"
+            "🇮🇳 India\n"
+            "🇵🇰 Pakistan\n"
+            "🇧🇩 Bangladesh\n"
+            "🇺🇸 USA\n"
+            "🇬🇧 UK\n"
+            "🇪🇸 Spain\n"
+            "🇩🇪 Germany\n"
+            "🇫🇷 France\n"
+            "🇧🇷 Brazil\n"
+            "🇷🇺 Russia\n"
+            "🇮🇩 Indonesia\n"
+            "🇵🇭 Philippines\n\n"
+            "<i>Type the country name or send /skip:</i>"
+        ),
+        parse_mode=ParseMode.HTML
     )
 
 
-@router.callback_query(F.data.startswith("country:"))
-async def select_country(callback: CallbackQuery, state: FSMContext):
-    if not await is_admin_check(callback.from_user.id):
-        await callback.answer("⚠️ Access denied!", show_alert=True)
+@router.message(AdminStates.waiting_seller_country)
+async def add_seller_country(message: Message, state: FSMContext):
+    if not await is_admin_check(message.from_user.id):
         return
-    
-    country = callback.data.split(":", 1)[1]
     
     data = await state.get_data()
     editing_seller_id = data.get("editing_seller_id")
+    country = None if message.text == "/skip" else message.text.strip()
     
     if editing_seller_id:
         async with async_session() as session:
@@ -984,12 +1019,11 @@ async def select_country(callback: CallbackQuery, state: FSMContext):
             await seller_service.update_seller(editing_seller_id, country=country)
             
             await state.clear()
-            await callback.message.edit_text(
+            await message.answer(
                 Templates.success("Seller country updated!"),
                 parse_mode=ParseMode.HTML,
                 reply_markup=seller_manage_keyboard(editing_seller_id)
             )
-        await callback.answer()
         return
     
     async with async_session() as session:
@@ -1004,12 +1038,11 @@ async def select_country(callback: CallbackQuery, state: FSMContext):
         
         await state.clear()
         
-        await callback.message.edit_text(
+        await message.answer(
             Templates.success(f"Seller @{data['seller_username']} added!"),
             parse_mode=ParseMode.HTML,
             reply_markup=back_to_admin_keyboard()
         )
-    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("admin:seller:") & ~F.data.contains("add") & ~F.data.contains("remove") & ~F.data.contains("edit"))
