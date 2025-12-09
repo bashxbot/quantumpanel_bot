@@ -45,9 +45,11 @@ class AdminStates(StatesGroup):
     waiting_price_amount = State()
     waiting_keys = State()
     waiting_admin_id = State()
-    waiting_reseller_id = State()
     waiting_seller_username = State()
     waiting_seller_name = State()
+    waiting_seller_description = State()
+    waiting_seller_platforms = State()
+    waiting_seller_country = State()
     waiting_credit_amount = State()
     waiting_user_telegram_id = State()
     waiting_premium_user_id = State()
@@ -126,7 +128,6 @@ async def show_statistics(callback: CallbackQuery):
         
         all_users = await user_service.get_all_users()
         premium_count = await user_service.get_premium_users_count()
-        resellers = await user_service.get_resellers()
         total_orders = await order_service.get_orders_count()
         total_revenue = await order_service.get_total_revenue()
         keys_data = await product_service.get_keys_count()
@@ -138,7 +139,7 @@ async def show_statistics(callback: CallbackQuery):
             total_revenue=total_revenue,
             keys_available=keys_data["available"],
             keys_total=keys_data["total"],
-            resellers_count=len(resellers)
+            resellers_count=0
         )
         
         await callback.message.edit_text(
@@ -520,11 +521,14 @@ async def manage_product_keys(callback: CallbackQuery, state: FSMContext):
         await callback.message.edit_text(
             Templates.info(
                 "Send keys in this format:\n\n"
-                "<code>DURATION|KEY</code>\n\n"
-                "Example:\n"
-                "<code>1 Month|ABC123XYZ</code>\n"
-                "<code>3 Months|DEF456UVW</code>\n\n"
-                "Send multiple lines to add multiple keys."
+                "<code>&lt;duration&gt; &lt;key&gt;</code>\n\n"
+                "<b>Examples:</b>\n"
+                "<code>1d ABC123XYZ</code> → 1 Day\n"
+                "<code>7d DEF456UVW</code> → 7 Days\n"
+                "<code>1m GHI789RST</code> → 1 Month\n"
+                "<code>3m JKL012MNO</code> → 3 Months\n\n"
+                "Send multiple lines to add multiple keys.\n\n"
+                "<i>Note: Duration must match one of the price options for this product.</i>"
             ),
             parse_mode=ParseMode.HTML
         )
@@ -593,165 +597,70 @@ async def add_keys(message: Message, state: FSMContext):
     
     lines = message.text.strip().split("\n")
     added = 0
+    errors = []
     
     async with async_session() as session:
         product_service = ProductService(session)
         
-        for line in lines:
-            if "|" in line:
-                parts = line.split("|", 1)
-                if len(parts) == 2:
-                    duration = parts[0].strip()
-                    key_value = parts[1].strip()
-                    await product_service.add_key(product_id, key_value, duration)
-                    added += 1
-        
-        await state.clear()
-        
-        await message.answer(
-            Templates.success(f"Added {added} keys successfully!"),
-            parse_mode=ParseMode.HTML,
-            reply_markup=back_to_admin_keyboard()
-        )
-
-
-@router.callback_query(F.data == "admin:resellers")
-async def manage_resellers(callback: CallbackQuery):
-    if not await is_admin_check(callback.from_user.id):
-        await callback.answer("⚠️ Access denied!", show_alert=True)
-        return
-    
-    async with async_session() as session:
-        user_service = UserService(session)
-        resellers = await user_service.get_resellers()
-        
-        resellers_data = [
-            {
-                "id": r.id,
-                "telegram_id": r.telegram_id,
-                "username": r.username,
-                "first_name": r.first_name,
-                "balance": r.balance
-            }
-            for r in resellers
-        ]
-        
-        text = f"""
-{Templates.DIVIDER}
-🧑‍💼 <b>MANAGE RESELLERS</b>
-{Templates.DIVIDER}
-
-Total resellers: {len(resellers)}
-
-Select a reseller to manage:
-"""
-        
-        await callback.message.edit_text(
-            text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=resellers_keyboard(resellers_data)
-        )
-    await callback.answer()
-
-
-@router.callback_query(F.data == "admin:reseller:add")
-async def add_reseller_start(callback: CallbackQuery, state: FSMContext):
-    if not await is_admin_check(callback.from_user.id):
-        await callback.answer("⚠️ Access denied!", show_alert=True)
-        return
-    
-    await state.set_state(AdminStates.waiting_reseller_id)
-    
-    await callback.message.edit_text(
-        Templates.info("Send the <b>Telegram ID</b> of the user to add as reseller:"),
-        parse_mode=ParseMode.HTML
-    )
-    await callback.answer()
-
-
-@router.message(AdminStates.waiting_reseller_id)
-async def add_reseller(message: Message, state: FSMContext):
-    if not await is_admin_check(message.from_user.id):
-        return
-    
-    try:
-        telegram_id = int(message.text)
-    except ValueError:
-        await message.answer(Templates.error("Please send a valid Telegram ID!"), parse_mode=ParseMode.HTML)
-        return
-    
-    async with async_session() as session:
-        user_service = UserService(session)
-        user = await user_service.get_user_by_telegram_id(telegram_id)
-        
-        if not user:
+        # Get product prices to validate durations
+        product = await product_service.get_product(product_id)
+        if not product:
             await message.answer(
-                Templates.error("User not found! They need to start the bot first."),
+                Templates.error("Product not found!"),
                 parse_mode=ParseMode.HTML,
                 reply_markup=back_to_admin_keyboard()
             )
             await state.clear()
             return
         
-        await user_service.set_reseller(user.id, True)
-        await user_service.set_premium(user.id, True)
+        # Create a set of valid durations from product prices
+        valid_durations = {p.duration for p in product.prices}
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            
+            parts = line.split(maxsplit=1)
+            if len(parts) != 2:
+                errors.append(f"Invalid format: {line}")
+                continue
+            
+            duration_code = parts[0].strip()
+            key_value = parts[1].strip()
+            
+            # Parse duration code (e.g., 1d, 7d, 1m, 3m)
+            parsed = parse_duration(duration_code)
+            if not parsed[0]:
+                errors.append(f"Invalid duration: {duration_code}")
+                continue
+            
+            _, readable_duration, _ = parsed
+            
+            # Check if this duration exists in product prices
+            if readable_duration not in valid_durations:
+                errors.append(f"Duration '{readable_duration}' not in price list for this product")
+                continue
+            
+            await product_service.add_key(product_id, key_value, readable_duration)
+            added += 1
         
         await state.clear()
         
+        result_text = f"Added {added} keys successfully!"
+        if errors:
+            result_text += f"\n\n⚠️ <b>Errors:</b>\n" + "\n".join(errors[:10])
+            if len(errors) > 10:
+                result_text += f"\n... and {len(errors) - 10} more errors"
+        
         await message.answer(
-            Templates.success(f"User {user.first_name or telegram_id} is now a reseller!"),
+            Templates.success(result_text) if added > 0 else Templates.error(result_text),
             parse_mode=ParseMode.HTML,
             reply_markup=back_to_admin_keyboard()
         )
 
 
-@router.callback_query(F.data.startswith("admin:reseller:") & ~F.data.contains("add") & ~F.data.contains("remove") & ~F.data.contains("orders"))
-async def show_reseller_detail(callback: CallbackQuery):
-    if not await is_admin_check(callback.from_user.id):
-        await callback.answer("⚠️ Access denied!", show_alert=True)
-        return
-    
-    user_id = int(callback.data.split(":")[-1])
-    
-    async with async_session() as session:
-        user_service = UserService(session)
-        users = await user_service.get_all_users()
-        user = next((u for u in users if u.id == user_id), None)
-        
-        if user:
-            text = f"""
-{Templates.DIVIDER}
-🧑‍💼 <b>RESELLER DETAILS</b>
-{Templates.DIVIDER}
 
-👤 <b>Name:</b> {user.first_name or 'N/A'}
-🆔 <b>Telegram ID:</b> <code>{user.telegram_id}</code>
-👤 <b>Username:</b> @{user.username or 'N/A'}
-💰 <b>Balance:</b> <code>${user.balance:.2f}</code>
-"""
-            await callback.message.edit_text(
-                text,
-                parse_mode=ParseMode.HTML,
-                reply_markup=reseller_manage_keyboard(user_id)
-            )
-    await callback.answer()
-
-
-@router.callback_query(F.data.startswith("admin:reseller:remove:"))
-async def remove_reseller(callback: CallbackQuery):
-    if not await is_admin_check(callback.from_user.id):
-        await callback.answer("⚠️ Access denied!", show_alert=True)
-        return
-    
-    user_id = int(callback.data.split(":")[-1])
-    
-    async with async_session() as session:
-        user_service = UserService(session)
-        await user_service.set_reseller(user_id, False)
-        
-        await callback.answer("✅ Reseller removed!")
-        callback.data = "admin:resellers"
-        return await manage_resellers(callback)
 
 
 @router.callback_query(F.data == "admin:admins")
@@ -843,18 +752,23 @@ async def show_admin_detail(callback: CallbackQuery):
     
     async with async_session() as session:
         admin_service = AdminService(session)
+        user_service = UserService(session)
         admins = await admin_service.get_all_admins()
         admin = next((a for a in admins if a.id == admin_id), None)
         
         if admin:
+            # Get user info if available
+            user = await user_service.get_user_by_telegram_id(admin.telegram_id)
+            
             is_root = admin.telegram_id == config.bot.root_admin_id
             text = f"""
 {Templates.DIVIDER}
 {'👑' if is_root else '🔑'} <b>ADMIN DETAILS</b>
 {Templates.DIVIDER}
 
-🆔 <b>Telegram ID:</b> <code>{admin.telegram_id}</code>
+🆔 <b>Chat ID:</b> <code>{admin.telegram_id}</code>
 👤 <b>Username:</b> @{admin.username or 'N/A'}
+📝 <b>Name:</b> {user.first_name if user and user.first_name else 'N/A'}
 {'👑 <b>Root Admin</b>' if is_root else ''}
 """
             await callback.message.edit_text(
@@ -958,14 +872,62 @@ async def add_seller_name(message: Message, state: FSMContext):
     if not await is_admin_check(message.from_user.id):
         return
     
-    data = await state.get_data()
     name = None if message.text == "/skip" else message.text
+    await state.update_data(seller_name=name)
+    await state.set_state(AdminStates.waiting_seller_description)
+    
+    await message.answer(
+        Templates.info("Send the seller's <b>description</b> (or /skip):"),
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(AdminStates.waiting_seller_description)
+async def add_seller_description(message: Message, state: FSMContext):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    description = None if message.text == "/skip" else message.text
+    await state.update_data(seller_description=description)
+    await state.set_state(AdminStates.waiting_seller_platforms)
+    
+    await message.answer(
+        Templates.info("Send the seller's <b>platforms</b> (e.g., Telegram: @username, Discord: username#1234) (or /skip):"),
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(AdminStates.waiting_seller_platforms)
+async def add_seller_platforms(message: Message, state: FSMContext):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    platforms = None if message.text == "/skip" else message.text
+    await state.update_data(seller_platforms=platforms)
+    await state.set_state(AdminStates.waiting_seller_country)
+    
+    await message.answer(
+        Templates.info("Send the seller's <b>country</b> (or /skip):"),
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(AdminStates.waiting_seller_country)
+async def add_seller_country(message: Message, state: FSMContext):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    data = await state.get_data()
+    country = None if message.text == "/skip" else message.text
     
     async with async_session() as session:
         seller_service = SellerService(session)
         await seller_service.add_seller(
             username=data["seller_username"],
-            name=name
+            name=data.get("seller_name"),
+            description=data.get("seller_description"),
+            platforms=data.get("seller_platforms"),
+            country=country
         )
         
         await state.clear()
@@ -999,6 +961,8 @@ async def show_seller_detail(callback: CallbackQuery):
 👤 <b>Username:</b> @{seller.username}
 📝 <b>Name:</b> {seller.name or 'N/A'}
 📋 <b>Description:</b> {seller.description or 'N/A'}
+🌐 <b>Platforms:</b> {seller.platforms or 'N/A'}
+🌍 <b>Country:</b> {seller.country or 'N/A'}
 """
             await callback.message.edit_text(
                 text,
@@ -1160,52 +1124,7 @@ async def process_credits(message: Message, state: FSMContext):
         )
 
 
-@router.callback_query(F.data == "admin:credits:add_by_id")
-async def add_credits_by_id_start(callback: CallbackQuery, state: FSMContext):
-    if not await is_admin_check(callback.from_user.id):
-        await callback.answer("⚠️ Access denied!", show_alert=True)
-        return
-    
-    await state.set_state(AdminStates.waiting_user_telegram_id)
-    
-    await callback.message.edit_text(
-        Templates.info("Send the <b>Telegram ID</b> of the user:"),
-        parse_mode=ParseMode.HTML
-    )
-    await callback.answer()
 
-
-@router.message(AdminStates.waiting_user_telegram_id)
-async def add_credits_by_id(message: Message, state: FSMContext):
-    if not await is_admin_check(message.from_user.id):
-        return
-    
-    try:
-        telegram_id = int(message.text)
-    except ValueError:
-        await message.answer(Templates.error("Please send a valid Telegram ID!"), parse_mode=ParseMode.HTML)
-        return
-    
-    async with async_session() as session:
-        user_service = UserService(session)
-        user = await user_service.get_user_by_telegram_id(telegram_id)
-        
-        if not user:
-            await message.answer(
-                Templates.error("User not found!"),
-                parse_mode=ParseMode.HTML,
-                reply_markup=back_to_admin_keyboard()
-            )
-            await state.clear()
-            return
-        
-        await state.update_data(credit_user_id=user.id, credit_action="add")
-        await state.set_state(AdminStates.waiting_credit_amount)
-        
-        await message.answer(
-            Templates.info(f"User found: {user.first_name or telegram_id}\nCurrent balance: ${user.balance:.2f}\n\nSend the amount to add:"),
-            parse_mode=ParseMode.HTML
-        )
 
 
 @router.callback_query(F.data == "noop")
@@ -1219,7 +1138,6 @@ async def manage_prices(callback: CallbackQuery):
         await callback.answer("⚠️ Access denied!", show_alert=True)
         return
     
-    callback.data = "admin:products"
     return await manage_products(callback)
 
 

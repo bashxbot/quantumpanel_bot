@@ -173,7 +173,30 @@ async def show_product_detail(callback: CallbackQuery):
         
         text = Templates.product_detail(product_data)
         
-        await edit_message(callback, text, product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium))
+        # If product has an image, show it
+        if product.image_file_id:
+            if callback.message.content_type == ContentType.PHOTO:
+                # Edit the existing photo message
+                await callback.message.edit_media(
+                    media=callback.message.photo[-1].file_id,
+                    reply_markup=product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium)
+                )
+                await callback.message.edit_caption(
+                    caption=text,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium)
+                )
+            else:
+                # Delete the text message and send a photo
+                await callback.message.delete()
+                await callback.message.answer_photo(
+                    photo=product.image_file_id,
+                    caption=text,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium)
+                )
+        else:
+            await edit_message(callback, text, product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium))
     await callback.answer()
 
 

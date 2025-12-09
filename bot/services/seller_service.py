@@ -33,12 +33,16 @@ class SellerService:
         self,
         username: str,
         name: Optional[str] = None,
-        description: Optional[str] = None
+        description: Optional[str] = None,
+        platforms: Optional[str] = None,
+        country: Optional[str] = None
     ) -> TrustedSeller:
         seller = TrustedSeller(
             username=username,
             name=name,
-            description=description
+            description=description,
+            platforms=platforms,
+            country=country
         )
         self.session.add(seller)
         await self.session.commit()

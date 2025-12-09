@@ -16,12 +16,8 @@ def quick_add_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="⭐ Add Premium User", callback_data="admin:premium:add")
     )
     builder.row(
-        InlineKeyboardButton(text="🧑‍💼 Add Reseller", callback_data="admin:reseller:add"),
-        InlineKeyboardButton(text="🔑 Add Admin", callback_data="admin:admin:add")
-    )
-    builder.row(
-        InlineKeyboardButton(text="⭐ Add Seller", callback_data="admin:seller:add"),
-        InlineKeyboardButton(text="💵 Add Credits", callback_data="admin:credits:add_by_id")
+        InlineKeyboardButton(text="🔑 Add Admin", callback_data="admin:admin:add"),
+        InlineKeyboardButton(text="⭐ Add Seller", callback_data="admin:seller:add")
     )
     builder.row(
         InlineKeyboardButton(text="◀️ Back", callback_data="admin:back")
@@ -35,13 +31,7 @@ def admin_main_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="🛠 Manage Products", callback_data="admin:products")
     )
     builder.row(
-        InlineKeyboardButton(text="💰 Manage Prices", callback_data="admin:prices")
-    )
-    builder.row(
         InlineKeyboardButton(text="⭐ Manage Premium Users", callback_data="admin:premium")
-    )
-    builder.row(
-        InlineKeyboardButton(text="🧑‍💼 Manage Resellers", callback_data="admin:resellers")
     )
     builder.row(
         InlineKeyboardButton(text="🎫 Manage Keys", callback_data="admin:keys")
@@ -222,11 +212,12 @@ def admins_keyboard(admins: list, root_admin_id: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     
     for a in admins:
-        name = a.get('username') or f"Admin {a['telegram_id']}"
+        # Show username if available, otherwise telegram_id
+        display_name = f"@{a.get('username')}" if a.get('username') else f"ID: {a['telegram_id']}"
         is_root = "👑" if a['telegram_id'] == root_admin_id else "🔑"
         builder.row(
             InlineKeyboardButton(
-                text=f"{is_root} {name}", 
+                text=f"{is_root} {display_name}", 
                 callback_data=f"admin:admin:{a['id']}"
             )
         )
@@ -310,9 +301,6 @@ def credits_keyboard(users: list) -> InlineKeyboardMarkup:
             )
         )
     
-    builder.row(
-        InlineKeyboardButton(text="➕ Add by Telegram ID", callback_data="admin:credits:add_by_id")
-    )
     builder.row(
         InlineKeyboardButton(text="◀️ Back to Admin", callback_data="admin:back")
     )
