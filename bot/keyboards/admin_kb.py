@@ -218,7 +218,7 @@ def sellers_manage_keyboard(sellers: list) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def seller_manage_keyboard(seller_id: int) -> InlineKeyboardMarkup:
+def seller_manage_keyboard(seller_id: int, is_active: bool = True) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         InlineKeyboardButton(text="✏️ Edit Username", callback_data=f"admin:seller:edit:username:{seller_id}"),
@@ -232,11 +232,43 @@ def seller_manage_keyboard(seller_id: int) -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="🌍 Edit Country", callback_data=f"admin:seller:edit:country:{seller_id}")
     )
     builder.row(
+        InlineKeyboardButton(
+            text=f"{'✅ Active' if is_active else '❌ Inactive'}", 
+            callback_data=f"admin:seller:toggle:{seller_id}"
+        )
+    )
+    builder.row(
         InlineKeyboardButton(text="🗑 Remove Seller", callback_data=f"admin:seller:remove:{seller_id}")
     )
     builder.row(
         InlineKeyboardButton(text="◀️ Back to Sellers", callback_data="admin:sellers")
     )
+    return builder.as_markup()
+
+
+def country_selection_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    
+    countries = [
+        ("🇮🇳 India", "India"),
+        ("🇵🇰 Pakistan", "Pakistan"),
+        ("🇧🇩 Bangladesh", "Bangladesh"),
+        ("🇺🇸 USA", "USA"),
+        ("🇬🇧 UK", "UK"),
+        ("🇪🇸 Spain", "Spain"),
+        ("🇩🇪 Germany", "Germany"),
+        ("🇫🇷 France", "France"),
+        ("🇧🇷 Brazil", "Brazil"),
+        ("🇷🇺 Russia", "Russia"),
+        ("🇮🇩 Indonesia", "Indonesia"),
+        ("🇵🇭 Philippines", "Philippines"),
+    ]
+    
+    for display, value in countries:
+        builder.row(
+            InlineKeyboardButton(text=display, callback_data=f"country:{value}")
+        )
+    
     return builder.as_markup()
 
 

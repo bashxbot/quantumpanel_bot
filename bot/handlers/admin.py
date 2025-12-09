@@ -959,20 +959,24 @@ async def add_seller_platforms(message: Message, state: FSMContext):
     await state.update_data(seller_platforms=platforms)
     await state.set_state(AdminStates.waiting_seller_country)
     
+    from bot.keyboards.admin_kb import country_selection_keyboard
     await message.answer(
-        Templates.info("Send the seller's <b>country</b> (or /skip):"),
-        parse_mode=ParseMode.HTML
+        Templates.info("Select the seller's <b>country</b>:"),
+        parse_mode=ParseMode.HTML,
+        reply_markup=country_selection_keyboard()
     )
 
 
-@router.message(AdminStates.waiting_seller_country)
-async def add_seller_country(message: Message, state: FSMContext):
-    if not await is_admin_check(message.from_user.id):
+@router.callback_query(F.data.startswith("country:"))
+async def select_country(callback: CallbackQuery, state: FSMContext):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
         return
+    
+    country = callback.data.split(":", 1)[1]
     
     data = await state.get_data()
     editing_seller_id = data.get("editing_seller_id")
-    country = None if message.text == "/skip" else message.text
     
     if editing_seller_id:
         async with async_session() as session:
@@ -980,11 +984,12 @@ async def add_seller_country(message: Message, state: FSMContext):
             await seller_service.update_seller(editing_seller_id, country=country)
             
             await state.clear()
-            await message.answer(
+            await callback.message.edit_text(
                 Templates.success("Seller country updated!"),
                 parse_mode=ParseMode.HTML,
                 reply_markup=seller_manage_keyboard(editing_seller_id)
             )
+        await callback.answer()
         return
     
     async with async_session() as session:
@@ -999,11 +1004,12 @@ async def add_seller_country(message: Message, state: FSMContext):
         
         await state.clear()
         
-        await message.answer(
+        await callback.message.edit_text(
             Templates.success(f"Seller @{data['seller_username']} added!"),
             parse_mode=ParseMode.HTML,
             reply_markup=back_to_admin_keyboard()
         )
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("admin:seller:") & ~F.data.contains("add") & ~F.data.contains("remove") & ~F.data.contains("edit"))
@@ -1054,20 +1060,29 @@ async def edit_seller_field(callback: CallbackQuery, state: FSMContext):
     
     await state.update_data(editing_seller_id=seller_id, editing_seller_field=field)
     
+    if field == "country":
+        await state.set_state(AdminStates.waiting_seller_country)
+        from bot.keyboards.admin_kb import country_selection_keyboard
+        await callback.message.edit_text(
+            Templates.info("Select the new <b>country</b>:"),
+            parse_mode=ParseMode.HTML,
+            reply_markup=country_selection_keyboard()
+        )
+        await callback.answer()
+        return
+    
     field_prompts = {
         "username": "Send the new <b>username</b> (without @):",
         "name": "Send the new <b>display name</b> (or /skip to remove):",
         "description": "Send the new <b>description</b> (or /skip to remove):",
-        "platforms": "Send the new <b>platforms</b> (or /skip to remove):",
-        "country": "Send the new <b>country</b> (or /skip to remove):"
+        "platforms": "Send the new <b>platforms</b> (or /skip to remove):"
     }
     
     state_mapping = {
         "username": AdminStates.waiting_seller_username,
         "name": AdminStates.waiting_seller_name,
         "description": AdminStates.waiting_seller_description,
-        "platforms": AdminStates.waiting_seller_platforms,
-        "country": AdminStates.waiting_seller_country
+        "platforms": AdminStates.waiting_seller_platforms
     }
     
     await state.set_state(state_mapping[field])
