@@ -93,7 +93,7 @@ def products_manage_keyboard(products: list) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def product_manage_keyboard(product_id: int) -> InlineKeyboardMarkup:
+def product_manage_keyboard(product_id: int, is_active: bool = True) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         InlineKeyboardButton(text="✏️ Edit Name", callback_data=f"admin:product:edit_name:{product_id}"),
@@ -106,7 +106,10 @@ def product_manage_keyboard(product_id: int) -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="💰 Add Prices", callback_data=f"admin:product:prices:{product_id}")
     )
     builder.row(
-        InlineKeyboardButton(text="🔄 Toggle Active", callback_data=f"admin:product:toggle:{product_id}")
+        InlineKeyboardButton(
+            text=f"{'❌ Deactivate' if is_active else '✅ Activate'}", 
+            callback_data=f"admin:product:toggle:{product_id}"
+        )
     )
     builder.row(
         InlineKeyboardButton(text="🗑 Delete Product", callback_data=f"admin:product:delete:{product_id}")
@@ -217,6 +220,17 @@ def sellers_manage_keyboard(sellers: list) -> InlineKeyboardMarkup:
 
 def seller_manage_keyboard(seller_id: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="✏️ Edit Username", callback_data=f"admin:seller:edit:username:{seller_id}"),
+        InlineKeyboardButton(text="📝 Edit Name", callback_data=f"admin:seller:edit:name:{seller_id}")
+    )
+    builder.row(
+        InlineKeyboardButton(text="📋 Edit Description", callback_data=f"admin:seller:edit:description:{seller_id}")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🌐 Edit Platforms", callback_data=f"admin:seller:edit:platforms:{seller_id}"),
+        InlineKeyboardButton(text="🌍 Edit Country", callback_data=f"admin:seller:edit:country:{seller_id}")
+    )
     builder.row(
         InlineKeyboardButton(text="🗑 Remove Seller", callback_data=f"admin:seller:remove:{seller_id}")
     )

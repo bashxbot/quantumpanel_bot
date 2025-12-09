@@ -51,6 +51,39 @@ class SellerService:
         logger.info(f"⭐ Seller added: {username}")
         return seller
     
+    async def update_seller(
+        self,
+        seller_id: int,
+        username: Optional[str] = None,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        platforms: Optional[str] = None,
+        country: Optional[str] = None
+    ) -> Optional[TrustedSeller]:
+        stmt = select(TrustedSeller).where(TrustedSeller.id == seller_id)
+        result = await self.session.execute(stmt)
+        seller = result.scalar_one_or_none()
+        
+        if not seller:
+            return None
+        
+        if username is not None:
+            seller.username = username
+        if name is not None:
+            seller.name = name
+        if description is not None:
+            seller.description = description
+        if platforms is not None:
+            seller.platforms = platforms
+        if country is not None:
+            seller.country = country
+        
+        await self.session.commit()
+        await self.session.refresh(seller)
+        await cache.delete("sellers:all")
+        logger.info(f"✏️ Seller updated: {seller_id}")
+        return seller
+    
     async def remove_seller(self, seller_id: int) -> bool:
         stmt = delete(TrustedSeller).where(TrustedSeller.id == seller_id)
         result = await self.session.execute(stmt)
