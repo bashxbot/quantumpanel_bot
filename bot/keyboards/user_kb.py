@@ -53,25 +53,35 @@ def products_keyboard(products: list, is_premium: bool = False) -> InlineKeyboar
 
 
 def get_readable_duration(duration: str) -> str:
-    """Convert duration code like '7d|7 Days' to readable format"""
+    """Convert duration to readable format. Handles both old format '7d|7 Days' and new format '7 Days'"""
     if '|' in duration:
         return duration.split('|')[1]
     return duration
 
 
 def get_sort_key(duration: str) -> int:
-    """Get sort key for duration to order prices properly"""
+    """Get sort key for duration to order prices properly. Handles both old and new formats."""
+    import re
+    
+    # Handle old format with pipe (e.g., "1d|1 Day")
     if '|' in duration:
         code = duration.split('|')[0]
-    else:
-        code = duration.lower()
+        match = re.match(r'^(\d+)(d|m)$', code)
+        if match:
+            num = int(match.group(1))
+            unit = match.group(2)
+            return num if unit == 'd' else num * 30
     
-    import re
-    match = re.match(r'^(\d+)(d|m)$', code)
+    # Handle new readable format (e.g., "1 Day", "3 Months")
+    match = re.match(r'^(\d+)\s*(Day|Days|Month|Months)$', duration, re.IGNORECASE)
     if match:
         num = int(match.group(1))
-        unit = match.group(2)
-        return num if unit == 'd' else num * 30
+        unit = match.group(2).lower()
+        if 'day' in unit:
+            return num
+        else:
+            return num * 30
+    
     return 999
 
 

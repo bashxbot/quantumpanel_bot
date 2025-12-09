@@ -452,7 +452,7 @@ async def add_price_duration(message: Message, state: FSMContext):
             
             await product_service.add_price(
                 product_id=product_id,
-                duration=f"{duration_code}|{readable_duration}",
+                duration=readable_duration,
                 price=price
             )
             added_prices.append(f"✅ {readable_duration} - ${price}")
