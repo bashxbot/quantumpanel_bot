@@ -269,27 +269,22 @@ async def manage_single_product(callback: CallbackQuery, state: FSMContext):
                 await product_service.update_product(product_id, is_active=new_status)
                 await callback.answer(f"{'✅ Activated' if new_status else '❌ Deactivated'}")
                 
-                # Refresh the products list
-                products = await product_service.get_all_products(active_only=False)
-                products_data = [
-                    {"id": p.id, "name": p.name, "is_active": p.is_active}
-                    for p in products
-                ]
+                # Refresh the product detail view with updated status
+                product_data = {
+                    "name": product.name,
+                    "description": product.description,
+                    "prices": [{"duration": p.duration, "price": p.price} for p in product.prices]
+                }
+                text = Templates.product_detail(product_data)
                 
-                text = f"""
-{Templates.DIVIDER}
-🛠 <b>MANAGE PRODUCTS</b>
-{Templates.DIVIDER}
-
-Total products: {len(products)}
-
-Select a product to manage:
-"""
+                status_emoji = "✅" if new_status else "❌"
+                status_text = "Active" if new_status else "Inactive"
+                text += f"\n{status_emoji} <b>Status:</b> {status_text}"
                 
                 await callback.message.edit_text(
                     text,
                     parse_mode=ParseMode.HTML,
-                    reply_markup=products_manage_keyboard(products_data)
+                    reply_markup=product_manage_keyboard(product_id, new_status)
                 )
                 return
     
