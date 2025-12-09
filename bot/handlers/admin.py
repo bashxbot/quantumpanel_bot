@@ -20,8 +20,6 @@ from bot.keyboards.admin_kb import (
     product_manage_keyboard,
     keys_manage_keyboard,
     product_keys_keyboard,
-    resellers_keyboard,
-    reseller_manage_keyboard,
     admins_keyboard,
     admin_manage_keyboard,
     sellers_manage_keyboard,
@@ -671,12 +669,19 @@ async def manage_admins(callback: CallbackQuery):
     
     async with async_session() as session:
         admin_service = AdminService(session)
+        user_service = UserService(session)
         admins = await admin_service.get_all_admins()
         
-        admins_data = [
-            {"id": a.id, "telegram_id": a.telegram_id, "username": a.username}
-            for a in admins
-        ]
+        admins_data = []
+        for a in admins:
+            user = await user_service.get_user_by_telegram_id(a.telegram_id)
+            admins_data.append({
+                "id": a.id, 
+                "telegram_id": a.telegram_id, 
+                "username": a.username,
+                "name": user.first_name if user else None,
+                "first_name": user.first_name if user else None
+            })
         
         text = f"""
 {Templates.DIVIDER}

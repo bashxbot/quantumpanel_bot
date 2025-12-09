@@ -170,50 +170,18 @@ def product_keys_keyboard(product_id: int) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def resellers_keyboard(resellers: list) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    
-    for r in resellers:
-        name = r.get('username') or r.get('first_name', f"User {r['telegram_id']}")
-        builder.row(
-            InlineKeyboardButton(
-                text=f"👤 {name}", 
-                callback_data=f"admin:reseller:{r['id']}"
-            )
-        )
-    
-    builder.row(
-        InlineKeyboardButton(text="➕ Add Reseller", callback_data="admin:reseller:add")
-    )
-    builder.row(
-        InlineKeyboardButton(text="◀️ Back to Admin", callback_data="admin:back")
-    )
-    return builder.as_markup()
-
-
-def reseller_manage_keyboard(user_id: int) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    builder.row(
-        InlineKeyboardButton(text="📦 View Orders", callback_data=f"admin:reseller:orders:{user_id}")
-    )
-    builder.row(
-        InlineKeyboardButton(text="💰 Add Credits", callback_data=f"admin:credits:add:{user_id}")
-    )
-    builder.row(
-        InlineKeyboardButton(text="🗑 Remove Reseller", callback_data=f"admin:reseller:remove:{user_id}")
-    )
-    builder.row(
-        InlineKeyboardButton(text="◀️ Back to Resellers", callback_data="admin:resellers")
-    )
-    return builder.as_markup()
-
-
 def admins_keyboard(admins: list, root_admin_id: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     
     for a in admins:
-        # Show username if available, otherwise telegram_id
-        display_name = f"@{a.get('username')}" if a.get('username') else f"ID: {a['telegram_id']}"
+        # Show name if available, then username, otherwise telegram_id
+        name = a.get('name') or a.get('first_name')
+        if name:
+            display_name = name
+        elif a.get('username'):
+            display_name = f"@{a.get('username')}"
+        else:
+            display_name = f"ID: {a['telegram_id']}"
         is_root = "👑" if a['telegram_id'] == root_admin_id else "🔑"
         builder.row(
             InlineKeyboardButton(
@@ -293,7 +261,7 @@ def credits_keyboard(users: list) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     
     for u in users:
-        name = u.get('username') or u.get('first_name', f"User {u['telegram_id']}")
+        name = u.get('first_name') or u.get('username') or f"User {u['telegram_id']}"
         builder.row(
             InlineKeyboardButton(
                 text=f"💰 {name} - ${u['balance']:.2f}", 

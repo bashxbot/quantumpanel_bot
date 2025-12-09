@@ -172,31 +172,30 @@ async def show_product_detail(callback: CallbackQuery):
         }
         
         text = Templates.product_detail(product_data)
+        keyboard = product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium)
         
         # If product has an image, show it
         if product.image_file_id:
+            from aiogram.types import InputMediaPhoto
             if callback.message.content_type == ContentType.PHOTO:
-                # Edit the existing photo message
+                # Edit the existing photo to show product image
                 await callback.message.edit_media(
-                    media=callback.message.photo[-1].file_id,
-                    reply_markup=product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium)
-                )
-                await callback.message.edit_caption(
-                    caption=text,
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium)
+                    media=InputMediaPhoto(media=product.image_file_id, caption=text, parse_mode=ParseMode.HTML),
+                    reply_markup=keyboard
                 )
             else:
-                # Delete the text message and send a photo
+                # Delete the text message and send a new photo using bot instance
+                chat_id = callback.message.chat.id
                 await callback.message.delete()
-                await callback.message.answer_photo(
+                await callback.bot.send_photo(
+                    chat_id=chat_id,
                     photo=product.image_file_id,
                     caption=text,
                     parse_mode=ParseMode.HTML,
-                    reply_markup=product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium)
+                    reply_markup=keyboard
                 )
         else:
-            await edit_message(callback, text, product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium))
+            await edit_message(callback, text, keyboard)
     await callback.answer()
 
 
