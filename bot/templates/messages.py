@@ -6,6 +6,7 @@ class Templates:
     DIVIDER = "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     DIVIDER_THIN = "───────────────────────────"
     STAR_LINE = "✦━━━━━━━━━━━━━━━━━━━━━━━━✦"
+    SPARKLE = "✨"
     
     @staticmethod
     def get_readable_duration(duration: str) -> str:
@@ -32,65 +33,115 @@ class Templates:
         last_purchase: Optional[datetime] = None
     ) -> str:
         status_emoji = "⭐" if status.lower() == "premium" else "🆓"
-        status_text = "Premium" if status.lower() == "premium" else "Free"
+        status_text = "✨ Premium ✨" if status.lower() == "premium" else "Free"
         
         last_purchase_str = "Never" if not last_purchase else last_purchase.strftime("%Y-%m-%d %H:%M")
         
         return f"""
 {Templates.welcome_banner()}
-{Templates.DIVIDER}
-👤 <b>Welcome, {first_name}!</b>
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
+       👤 <b>Welcome, {first_name}!</b>
+{Templates.STAR_LINE}
 
 📋 <b>Your Profile</b>
 {Templates.DIVIDER_THIN}
-🆔 <b>Telegram ID:</b> <code>{telegram_id}</code>
-💳 <b>Balance:</b> <code>${balance:.2f}</code>
-{status_emoji} <b>Status:</b> {status_text}
-📦 <b>Last Purchase:</b> {last_purchase_str}
-{Templates.DIVIDER}
+   🆔 Telegram ID: <code>{telegram_id}</code>
+   💳 Balance: <code>${balance:.2f}</code>
+   {status_emoji} Status: <b>{status_text}</b>
+   📦 Last Purchase: {last_purchase_str}
 
-<i>Select an option below:</i>
+{Templates.STAR_LINE}
+      <i>Select an option below ⬇️</i>
+{Templates.STAR_LINE}
 """
     
     @staticmethod
     def trusted_sellers(sellers: list) -> str:
         if not sellers:
             return f"""
-{Templates.DIVIDER}
-⭐ <b>TRUSTED SELLERS</b>
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
+     🎉 <b>OUR OFFICIAL SELLERS!</b>
+{Templates.STAR_LINE}
 
 <i>No trusted sellers available at the moment.</i>
 
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
 """
         
-        seller_list = ""
-        for i, seller in enumerate(sellers, 1):
-            name = seller.get("name", seller.get("username", "Seller"))
-            username = seller.get("username", "")
-            desc = seller.get("description", "")
-            seller_list += f"\n{i}. <b>{name}</b> - @{username}"
-            if desc:
-                seller_list += f"\n   <i>{desc}</i>"
-            seller_list += "\n"
+        # Group sellers by country
+        sellers_by_country = {}
+        for seller in sellers:
+            country = seller.get("country") or "Other"
+            if country not in sellers_by_country:
+                sellers_by_country[country] = []
+            sellers_by_country[country].append(seller)
+        
+        seller_text = ""
+        for country, country_sellers in sellers_by_country.items():
+            # Add country flag based on common countries
+            country_display = country
+            if "india" in country.lower():
+                country_display = f"India 🇮🇳"
+            elif "spain" in country.lower():
+                country_display = f"Spain 🇪🇸"
+            elif "pakistan" in country.lower():
+                country_display = f"Pakistan 🇵🇰"
+            elif "usa" in country.lower() or "united states" in country.lower():
+                country_display = f"USA 🇺🇸"
+            elif "uk" in country.lower() or "united kingdom" in country.lower():
+                country_display = f"UK 🇬🇧"
+            elif "germany" in country.lower():
+                country_display = f"Germany 🇩🇪"
+            elif "france" in country.lower():
+                country_display = f"France 🇫🇷"
+            elif "brazil" in country.lower():
+                country_display = f"Brazil 🇧🇷"
+            elif "russia" in country.lower():
+                country_display = f"Russia 🇷🇺"
+            elif "indonesia" in country.lower():
+                country_display = f"Indonesia 🇮🇩"
+            elif "philippines" in country.lower():
+                country_display = f"Philippines 🇵🇭"
+            elif "bangladesh" in country.lower():
+                country_display = f"Bangladesh 🇧🇩"
+            
+            seller_text += f"\n<b>{country_display}</b>\n"
+            
+            for i, seller in enumerate(country_sellers, 1):
+                name = seller.get("name") or seller.get("username", "Seller")
+                platforms = seller.get("platforms", "")
+                
+                seller_text += f"\n{i}. <b>{name}</b>\n"
+                seller_text += f"💬 <b>Contact:</b>\n"
+                
+                if platforms:
+                    for line in platforms.split('\n'):
+                        line = line.strip()
+                        if line:
+                            seller_text += f"   {line}\n"
+                else:
+                    username = seller.get("username", "")
+                    if username:
+                        seller_text += f"   Telegram - @{username}\n"
+                
+                seller_text += "\n"
         
         return f"""
-{Templates.DIVIDER}
-⭐ <b>TRUSTED SELLERS</b>
-{Templates.DIVIDER}
-{seller_list}
-{Templates.DIVIDER}
-<i>Contact any seller above for assistance!</i>
+{Templates.STAR_LINE}
+     🎉 <b>OUR OFFICIAL SELLERS!</b>
+{Templates.STAR_LINE}
+{seller_text}
+{Templates.STAR_LINE}
+   <i>✅ Verified & Trusted Sellers</i>
+{Templates.STAR_LINE}
 """
     
     @staticmethod
     def products_list_free() -> str:
         return f"""
-{Templates.DIVIDER}
-🛍 <b>PRODUCTS</b>
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
+     🛍 <b>PRODUCTS</b>
+{Templates.STAR_LINE}
 
 🔒 <b>Premium Access Required</b>
 
@@ -98,12 +149,12 @@ class Templates:
 product prices and make purchases.</i>
 
 💎 Upgrade now to unlock:
-   • View all product prices
-   • Make purchases
-   • Access exclusive deals
-   • Priority support
+   ✅ View all product prices
+   ✅ Make purchases
+   ✅ Access exclusive deals
+   ✅ Priority support
 
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
 """
     
     @staticmethod
@@ -126,6 +177,8 @@ product prices and make purchases.</i>
 {Templates.STAR_LINE}
      🛍 <b>PRODUCTS</b>
 {Templates.STAR_LINE}
+
+📦 <b>Available Products:</b> {len(products)}
 
 <i>Select a product below to view details!</i>
 
@@ -150,13 +203,15 @@ product prices and make purchases.</i>
             date_str = order.get('date', 'Unknown')
             readable_duration = Templates.get_readable_duration(order['duration'])
             order_text += f"""
-{i}. <b>{order['product_name']}</b>
-   📅 {date_str}
-   ⏱ {readable_duration}
-   💵 <code>${order['price']:.2f}</code>
+┌─────────────────────────┐
+│ {i}. <b>{order['product_name']}</b>
+│   📅 {date_str}
+│   ⏱ {readable_duration}
+│   💵 <code>${order['price']:.2f}</code>
 """
             if order.get('key'):
-                order_text += f"   🔑 <code>{order['key']}</code>\n"
+                order_text += f"│   🔑 <code>{order['key']}</code>\n"
+            order_text += "└─────────────────────────┘\n"
         
         return f"""
 {Templates.STAR_LINE}
@@ -169,9 +224,9 @@ product prices and make purchases.</i>
     @staticmethod
     def add_balance(admin_username: str) -> str:
         return f"""
-{Templates.DIVIDER}
-💳 <b>ADD BALANCE</b>
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
+     💳 <b>ADD BALANCE</b>
+{Templates.STAR_LINE}
 
 To add balance to your account, please 
 contact our admin:
@@ -181,15 +236,15 @@ contact our admin:
 <i>Send the amount you wish to add and 
 complete the payment as instructed.</i>
 
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
 """
     
     @staticmethod
     def upgrade_premium(admin_username: str) -> str:
         return f"""
-{Templates.DIVIDER}
-🚀 <b>UPGRADE TO PREMIUM</b>
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
+     🚀 <b>UPGRADE TO PREMIUM</b>
+{Templates.STAR_LINE}
 
 💎 <b>Premium Benefits:</b>
 
@@ -202,7 +257,7 @@ complete the payment as instructed.</i>
 📞 <b>To upgrade, contact:</b>
    {admin_username}
 
-{Templates.DIVIDER}
+{Templates.STAR_LINE}
 """
     
     @staticmethod
@@ -332,6 +387,87 @@ Select an option to manage your panel:
 
 {Templates.STAR_LINE}
 <i>Thank you for your purchase!</i>
+"""
+    
+    @staticmethod
+    def broadcast_progress(total: int, sent: int, failed: int) -> str:
+        remaining = total - sent - failed
+        progress_pct = ((sent + failed) / total * 100) if total > 0 else 0
+        
+        # Create progress bar
+        filled = int(progress_pct / 5)
+        empty = 20 - filled
+        bar = "█" * filled + "░" * empty
+        
+        return f"""
+{Templates.DIVIDER}
+📣 <b>BROADCAST IN PROGRESS</b>
+{Templates.DIVIDER}
+
+<code>[{bar}] {progress_pct:.1f}%</code>
+
+📊 <b>Statistics:</b>
+{Templates.DIVIDER_THIN}
+   ✅ Sent: <code>{sent}</code>
+   ⏳ Remaining: <code>{remaining}</code>
+   ❌ Failed/Blocked: <code>{failed}</code>
+   📝 Total: <code>{total}</code>
+
+{Templates.DIVIDER}
+"""
+    
+    @staticmethod
+    def broadcast_complete(total: int, sent: int, failed: int) -> str:
+        success_rate = (sent / total * 100) if total > 0 else 0
+        
+        return f"""
+{Templates.DIVIDER}
+✅ <b>BROADCAST COMPLETED!</b>
+{Templates.DIVIDER}
+
+📊 <b>Final Statistics:</b>
+{Templates.DIVIDER_THIN}
+   ✅ Successfully Sent: <code>{sent}</code>
+   ❌ Failed/Blocked: <code>{failed}</code>
+   📝 Total Users: <code>{total}</code>
+   📈 Success Rate: <code>{success_rate:.1f}%</code>
+
+{Templates.DIVIDER}
+"""
+    
+    @staticmethod
+    def top_sellers(sellers: list) -> str:
+        if not sellers:
+            return f"""
+{Templates.DIVIDER}
+🏆 <b>TOP SELLERS</b>
+{Templates.DIVIDER}
+
+<i>No sales data available yet.</i>
+
+{Templates.DIVIDER}
+"""
+        
+        seller_text = ""
+        medals = ["🥇", "🥈", "🥉"]
+        for i, seller in enumerate(sellers[:10], 1):
+            medal = medals[i-1] if i <= 3 else f"{i}."
+            name = seller.get('name') or seller.get('username') or f"User {seller.get('telegram_id', 'Unknown')}"
+            total_spent = seller.get('total_spent', 0)
+            orders_count = seller.get('orders_count', 0)
+            
+            seller_text += f"""
+{medal} <b>{name}</b>
+   💰 Total Spent: <code>${total_spent:.2f}</code>
+   📦 Orders: <code>{orders_count}</code>
+"""
+        
+        return f"""
+{Templates.DIVIDER}
+🏆 <b>TOP 10 SELLERS</b>
+{Templates.DIVIDER}
+{seller_text}
+{Templates.DIVIDER}
 """
     
     @staticmethod

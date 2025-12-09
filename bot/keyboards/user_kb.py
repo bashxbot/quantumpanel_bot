@@ -93,21 +93,39 @@ def product_detail_keyboard(product_id: int, prices: list, is_premium: bool = Tr
     if is_premium:
         for price in sorted_prices:
             readable = get_readable_duration(price['duration'])
-            builder.row(
-                InlineKeyboardButton(
-                    text=f"🛒 {readable} — ${price['price']}",
-                    callback_data=f"buy:{product_id}:{price['id']}"
+            in_stock = price.get('in_stock', True)
+            if in_stock:
+                builder.row(
+                    InlineKeyboardButton(
+                        text=f"🛒 {readable} — ${price['price']}",
+                        callback_data=f"buy:{product_id}:{price['id']}"
+                    )
                 )
-            )
+            else:
+                builder.row(
+                    InlineKeyboardButton(
+                        text=f"❌ {readable} — OUT OF STOCK",
+                        callback_data="noop"
+                    )
+                )
     else:
         for price in sorted_prices:
             readable = get_readable_duration(price['duration'])
-            builder.row(
-                InlineKeyboardButton(
-                    text=f"💰 {readable} — ${price['price']}",
-                    callback_data="noop"
+            in_stock = price.get('in_stock', True)
+            if in_stock:
+                builder.row(
+                    InlineKeyboardButton(
+                        text=f"💰 {readable} — ${price['price']}",
+                        callback_data="noop"
+                    )
                 )
-            )
+            else:
+                builder.row(
+                    InlineKeyboardButton(
+                        text=f"❌ {readable} — OUT OF STOCK",
+                        callback_data="noop"
+                    )
+                )
         builder.row(
             InlineKeyboardButton(text="🚀 Upgrade to Purchase", callback_data="upgrade_premium")
         )

@@ -74,3 +74,31 @@ class OrderService:
         stmt = select(func.count(Order.id)).where(Order.user_id == user_id)
         result = await self.session.execute(stmt)
         return result.scalar() or 0
+    
+    async def get_top_sellers(self, limit: int = 10) -> List[dict]:
+        """Get top users by total spent, ordered by total spending"""
+        stmt = select(
+            User.id,
+            User.telegram_id,
+            User.username,
+            User.first_name,
+            func.sum(Order.price).label('total_spent'),
+            func.count(Order.id).label('orders_count')
+        ).join(Order, Order.user_id == User.id).group_by(
+            User.id, User.telegram_id, User.username, User.first_name
+        ).order_by(func.sum(Order.price).desc()).limit(limit)
+        
+        result = await self.session.execute(stmt)
+        rows = result.all()
+        
+        return [
+            {
+                'id': row.id,
+                'telegram_id': row.telegram_id,
+                'username': row.username,
+                'name': row.first_name,
+                'total_spent': float(row.total_spent) if row.total_spent else 0,
+                'orders_count': row.orders_count
+            }
+            for row in rows
+        ]

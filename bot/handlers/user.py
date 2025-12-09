@@ -111,7 +111,13 @@ async def show_trusted_sellers(callback: CallbackQuery):
         sellers = await seller_service.get_all_sellers()
         
         sellers_data = [
-            {"username": s.username, "name": s.name, "description": s.description}
+            {
+                "username": s.username, 
+                "name": s.name, 
+                "description": s.description,
+                "country": s.country,
+                "platforms": s.platforms
+            }
             for s in sellers
         ]
         
@@ -164,11 +170,22 @@ async def show_product_detail(callback: CallbackQuery):
             await callback.answer("❌ Product not found!", show_alert=True)
             return
         
+        # Check stock for each price option
+        prices_with_stock = []
+        for pr in product.prices:
+            key = await product_service.get_available_key(product_id, pr.duration)
+            prices_with_stock.append({
+                "id": pr.id, 
+                "duration": pr.duration, 
+                "price": pr.price,
+                "in_stock": key is not None
+            })
+        
         product_data = {
             "id": product.id,
             "name": product.name,
             "description": product.description,
-            "prices": [{"id": pr.id, "duration": pr.duration, "price": pr.price} for pr in product.prices]
+            "prices": prices_with_stock
         }
         
         text = Templates.product_detail(product_data)
@@ -224,6 +241,12 @@ async def initiate_purchase(callback: CallbackQuery):
             await callback.answer("❌ Price option not found!", show_alert=True)
             return
         
+        # Check if key is in stock
+        key = await product_service.get_available_key(product_id, price.duration)
+        if not key:
+            await callback.answer("❌ Out of stock! Please try again later.", show_alert=True)
+            return
+        
         if user.balance < price.price:
             await callback.answer(f"❌ Insufficient balance! Need ${price.price}, have ${user.balance:.2f}", show_alert=True)
             return
@@ -270,11 +293,12 @@ async def confirm_purchase(callback: CallbackQuery):
             return
         
         key = await product_service.get_available_key(product_id, price.duration)
-        key_value = None
+        if not key:
+            await callback.answer("❌ Out of stock! No keys available.", show_alert=True)
+            return
         
-        if key:
-            key_value = key.key_value
-            await product_service.mark_key_used(key.id)
+        key_value = key.key_value
+        await product_service.mark_key_used(key.id)
         
         order = await order_service.create_order(
             user_id=user.id,

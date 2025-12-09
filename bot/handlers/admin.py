@@ -28,7 +28,9 @@ from bot.keyboards.admin_kb import (
     user_credits_keyboard,
     premium_users_keyboard,
     premium_user_manage_keyboard,
-    quick_add_keyboard
+    broadcast_keyboard,
+    broadcast_cancel_keyboard,
+    statistics_keyboard
 )
 from bot.config import config
 
@@ -51,6 +53,8 @@ class AdminStates(StatesGroup):
     waiting_credit_amount = State()
     waiting_user_telegram_id = State()
     waiting_premium_user_id = State()
+    waiting_broadcast_text = State()
+    waiting_broadcast_photo = State()
 
 
 async def is_admin_check(user_id: int) -> bool:

@@ -3,28 +3,6 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from typing import List
 
 
-def _add_global_add_button(builder: InlineKeyboardBuilder):
-    builder.row(
-        InlineKeyboardButton(text="➕ Quick Add", callback_data="admin:quick_add")
-    )
-
-
-def quick_add_keyboard() -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    builder.row(
-        InlineKeyboardButton(text="📦 Add Product", callback_data="admin:product:add"),
-        InlineKeyboardButton(text="⭐ Add Premium User", callback_data="admin:premium:add")
-    )
-    builder.row(
-        InlineKeyboardButton(text="🔑 Add Admin", callback_data="admin:admin:add"),
-        InlineKeyboardButton(text="⭐ Add Seller", callback_data="admin:seller:add")
-    )
-    builder.row(
-        InlineKeyboardButton(text="◀️ Back", callback_data="admin:back")
-    )
-    return builder.as_markup()
-
-
 def admin_main_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
@@ -44,6 +22,9 @@ def admin_main_keyboard() -> InlineKeyboardMarkup:
     )
     builder.row(
         InlineKeyboardButton(text="⭐ Manage Sellers", callback_data="admin:sellers")
+    )
+    builder.row(
+        InlineKeyboardButton(text="📣 Broadcast", callback_data="admin:broadcast")
     )
     builder.row(
         InlineKeyboardButton(text="📊 Statistics", callback_data="admin:stats")
@@ -85,7 +66,6 @@ def premium_user_manage_keyboard(user_id: int) -> InlineKeyboardMarkup:
 
 def back_to_admin_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    _add_global_add_button(builder)
     builder.row(
         InlineKeyboardButton(text="◀️ Back to Admin", callback_data="admin:back")
     )
@@ -107,7 +87,6 @@ def products_manage_keyboard(products: list) -> InlineKeyboardMarkup:
     builder.row(
         InlineKeyboardButton(text="➕ Add Product", callback_data="admin:product:add")
     )
-    _add_global_add_button(builder)
     builder.row(
         InlineKeyboardButton(text="◀️ Back to Admin", callback_data="admin:back")
     )
@@ -132,7 +111,6 @@ def product_manage_keyboard(product_id: int) -> InlineKeyboardMarkup:
     builder.row(
         InlineKeyboardButton(text="🗑 Delete Product", callback_data=f"admin:product:delete:{product_id}")
     )
-    _add_global_add_button(builder)
     builder.row(
         InlineKeyboardButton(text="◀️ Back to Products", callback_data="admin:products")
     )
@@ -174,7 +152,6 @@ def admins_keyboard(admins: list, root_admin_id: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     
     for a in admins:
-        # Show name if available, then username, otherwise telegram_id
         name = a.get('name') or a.get('first_name')
         if name:
             display_name = name
@@ -221,9 +198,10 @@ def sellers_manage_keyboard(sellers: list) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     
     for s in sellers:
+        name = s.get('name') or f"@{s['username']}"
         builder.row(
             InlineKeyboardButton(
-                text=f"⭐ @{s['username']}", 
+                text=f"⭐ {name}", 
                 callback_data=f"admin:seller:{s['id']}"
             )
         )
@@ -285,5 +263,38 @@ def user_credits_keyboard(user_id: int) -> InlineKeyboardMarkup:
     )
     builder.row(
         InlineKeyboardButton(text="◀️ Back to Credits", callback_data="admin:credits")
+    )
+    return builder.as_markup()
+
+
+def broadcast_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="📝 Send Text Message", callback_data="admin:broadcast:text")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🖼 Send Photo + Text", callback_data="admin:broadcast:photo")
+    )
+    builder.row(
+        InlineKeyboardButton(text="◀️ Back to Admin", callback_data="admin:back")
+    )
+    return builder.as_markup()
+
+
+def broadcast_cancel_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="❌ Cancel Broadcast", callback_data="admin:broadcast:cancel")
+    )
+    return builder.as_markup()
+
+
+def statistics_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="🏆 Top Sellers", callback_data="admin:stats:top_sellers")
+    )
+    builder.row(
+        InlineKeyboardButton(text="◀️ Back to Admin", callback_data="admin:back")
     )
     return builder.as_markup()
