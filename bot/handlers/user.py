@@ -54,13 +54,6 @@ async def cmd_start(message: Message):
             last_name=message.from_user.last_name
         )
         
-        if getattr(user, 'is_banned', False):
-            await message.answer(
-                "🚫 <b>Your account has been banned.</b>\n\nPlease contact support if you believe this is an error.",
-                parse_mode=ParseMode.HTML
-            )
-            return
-        
         is_premium = user.status == UserStatus.PREMIUM
         
         text = Templates.user_dashboard(
