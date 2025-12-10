@@ -29,7 +29,7 @@ class DatabaseConfig:
 
 @dataclass
 class RedisConfig:
-    url: str = os.getenv("REDIS_URL", "redis://localhost:6379")
+    url: str = os.getenv("REDIS_URL", "redis://default:ARTvAAImcDE0YWZlMWU2MjAwNDY0NmFiYTU4OTdkNjEwZDA5ZDE1ZnAxNTM1OQ@obliging-hare-5359.upstash.io:6379")
 
 
 @dataclass
