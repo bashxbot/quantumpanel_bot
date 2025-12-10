@@ -1,0 +1,353 @@
+2025-12-10T13:26:12.309689696Z   Downloading multidict-6.7.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (5.3 kB)
+2025-12-10T13:26:12.384272383Z Collecting propcache>=0.2.0 (from aiohttp)
+2025-12-10T13:26:12.391701157Z   Downloading propcache-0.4.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (13 kB)
+2025-12-10T13:26:12.658594788Z Collecting yarl<2.0,>=1.17.0 (from aiohttp)
+2025-12-10T13:26:12.664435196Z   Downloading yarl-1.22.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (75 kB)
+2025-12-10T13:26:12.702816091Z Collecting idna>=2.0 (from yarl<2.0,>=1.17.0->aiohttp)
+2025-12-10T13:26:12.707054573Z   Downloading idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+2025-12-10T13:26:12.749613308Z Collecting aiofiles<26.0,>=23.2.1 (from aiogram)
+2025-12-10T13:26:12.753312634Z   Downloading aiofiles-25.1.0-py3-none-any.whl.metadata (6.3 kB)
+2025-12-10T13:26:12.80321014Z Collecting certifi>=2023.7.22 (from aiogram)
+2025-12-10T13:26:12.807293828Z   Downloading certifi-2025.11.12-py3-none-any.whl.metadata (2.5 kB)
+2025-12-10T13:26:12.836882309Z Collecting magic-filter<1.1,>=1.0.12 (from aiogram)
+2025-12-10T13:26:12.843173591Z   Downloading magic_filter-1.0.12-py3-none-any.whl.metadata (1.5 kB)
+2025-12-10T13:26:12.971512024Z Collecting pydantic<2.13,>=2.4.1 (from aiogram)
+2025-12-10T13:26:12.975947542Z   Downloading pydantic-2.12.5-py3-none-any.whl.metadata (90 kB)
+2025-12-10T13:26:13.002382913Z Collecting typing-extensions<=5.0,>=4.7.0 (from aiogram)
+2025-12-10T13:26:13.00609722Z   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+2025-12-10T13:26:13.025153588Z Collecting annotated-types>=0.6.0 (from pydantic<2.13,>=2.4.1->aiogram)
+2025-12-10T13:26:13.028369041Z   Downloading annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+2025-12-10T13:26:13.692439813Z Collecting pydantic-core==2.41.5 (from pydantic<2.13,>=2.4.1->aiogram)
+2025-12-10T13:26:13.696404427Z   Downloading pydantic_core-2.41.5-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.3 kB)
+2025-12-10T13:26:13.725638299Z Collecting typing-inspection>=0.4.2 (from pydantic<2.13,>=2.4.1->aiogram)
+2025-12-10T13:26:13.730256662Z   Downloading typing_inspection-0.4.2-py3-none-any.whl.metadata (2.6 kB)
+2025-12-10T13:26:13.87368441Z Collecting greenlet>=1 (from sqlalchemy)
+2025-12-10T13:26:13.878765876Z   Downloading greenlet-3.3.0-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (4.1 kB)
+2025-12-10T13:26:13.910762117Z Downloading aiohttp-3.13.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (1.7 MB)
+2025-12-10T13:26:13.934180091Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 79.4 MB/s eta 0:00:00
+2025-12-10T13:26:13.938471665Z Downloading multidict-6.7.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (254 kB)
+2025-12-10T13:26:13.955533356Z Downloading yarl-1.22.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (377 kB)
+2025-12-10T13:26:13.971621409Z Downloading loguru-0.7.3-py3-none-any.whl (61 kB)
+2025-12-10T13:26:13.988200396Z Downloading aiogram-3.23.0-py3-none-any.whl (698 kB)
+2025-12-10T13:26:14.003180047Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 698.4/698.4 kB 35.5 MB/s eta 0:00:00
+2025-12-10T13:26:14.006724299Z Downloading aiofiles-25.1.0-py3-none-any.whl (14 kB)
+2025-12-10T13:26:14.019307891Z Downloading magic_filter-1.0.12-py3-none-any.whl (11 kB)
+2025-12-10T13:26:14.030751801Z Downloading pydantic-2.12.5-py3-none-any.whl (463 kB)
+2025-12-10T13:26:14.046120953Z Downloading pydantic_core-2.41.5-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+2025-12-10T13:26:14.066486989Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 100.9 MB/s eta 0:00:00
+2025-12-10T13:26:14.069462415Z Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+2025-12-10T13:26:14.08252312Z Downloading sqlalchemy-2.0.45-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (3.3 MB)
+2025-12-10T13:26:14.113558054Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 105.4 MB/s eta 0:00:00
+2025-12-10T13:26:14.125112966Z Downloading redis-7.1.0-py3-none-any.whl (354 kB)
+2025-12-10T13:26:14.146496722Z Downloading psycopg2_binary-2.9.11-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (4.2 MB)
+2025-12-10T13:26:14.179416309Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.2/4.2 MB 128.1 MB/s eta 0:00:00
+2025-12-10T13:26:14.182976372Z Downloading pillow-12.0.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (7.0 MB)
+2025-12-10T13:26:14.276325008Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.0/7.0 MB 75.0 MB/s eta 0:00:00
+2025-12-10T13:26:14.280031525Z Downloading python_dotenv-1.2.1-py3-none-any.whl (21 kB)
+2025-12-10T13:26:14.290178207Z Downloading asyncpg-0.31.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (3.5 MB)
+2025-12-10T13:26:14.365640359Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.5/3.5 MB 44.6 MB/s eta 0:00:00
+2025-12-10T13:26:14.369112619Z Downloading aiohappyeyeballs-2.6.1-py3-none-any.whl (15 kB)
+2025-12-10T13:26:14.378590252Z Downloading aiosignal-1.4.0-py3-none-any.whl (7.5 kB)
+2025-12-10T13:26:14.388155907Z Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+2025-12-10T13:26:14.398566587Z Downloading attrs-25.4.0-py3-none-any.whl (67 kB)
+2025-12-10T13:26:14.409317306Z Downloading certifi-2025.11.12-py3-none-any.whl (159 kB)
+2025-12-10T13:26:14.429529108Z Downloading frozenlist-1.8.0-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (234 kB)
+2025-12-10T13:26:14.445515488Z Downloading greenlet-3.3.0-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (612 kB)
+2025-12-10T13:26:14.462684552Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 612.8/612.8 kB 24.7 MB/s eta 0:00:00
+2025-12-10T13:26:14.468140619Z Downloading idna-3.11-py3-none-any.whl (71 kB)
+2025-12-10T13:26:14.483662076Z Downloading propcache-0.4.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (204 kB)
+2025-12-10T13:26:14.499467071Z Downloading typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+2025-12-10T13:26:14.618739924Z Installing collected packages: typing-extensions, redis, python-dotenv, psycopg2-binary, propcache, pillow, multidict, magic-filter, loguru, idna, greenlet, frozenlist, certifi, attrs, asyncpg, annotated-types, aiohappyeyeballs, aiofiles, yarl, typing-inspection, sqlalchemy, pydantic-core, aiosignal, pydantic, aiohttp, aiogram
+2025-12-10T13:26:19.21885603Z 
+2025-12-10T13:26:19.222067903Z Successfully installed aiofiles-25.1.0 aiogram-3.23.0 aiohappyeyeballs-2.6.1 aiohttp-3.13.2 aiosignal-1.4.0 annotated-types-0.7.0 asyncpg-0.31.0 attrs-25.4.0 certifi-2025.11.12 frozenlist-1.8.0 greenlet-3.3.0 idna-3.11 loguru-0.7.3 magic-filter-1.0.12 multidict-6.7.0 pillow-12.0.0 propcache-0.4.1 psycopg2-binary-2.9.11 pydantic-2.12.5 pydantic-core-2.41.5 python-dotenv-1.2.1 redis-7.1.0 sqlalchemy-2.0.45 typing-extensions-4.15.0 typing-inspection-0.4.2 yarl-1.22.0
+2025-12-10T13:26:19.302598741Z 
+2025-12-10T13:26:19.302618281Z [notice] A new release of pip is available: 25.1.1 -> 25.3
+2025-12-10T13:26:19.302622831Z [notice] To update, run: pip install --upgrade pip
+2025-12-10T13:26:24.928464771Z ==> Uploading build...
+2025-12-10T13:26:43.995387379Z ==> Uploaded in 15.9s. Compression took 3.1s
+2025-12-10T13:26:44.077030729Z ==> Build successful 🎉
+2025-12-10T13:26:47.649295706Z ==> Deploying...
+2025-12-10T13:27:26.668500882Z ==> Running 'python3 web_server.py'
+2025-12-10T13:27:56.463557583Z 2025-12-10 13:27:56 | INFO     | bot.main:main:72 - 📡 Starting polling...
+2025-12-10T13:27:56.464191317Z 2025-12-10 13:27:56 | INFO     | bot.main:on_startup:33 - 🚀 Starting Quantum Panel Bot...
+2025-12-10T13:27:56.464283119Z 2025-12-10 13:27:56 | INFO     | bot.database:init_db:23 - 🗄️ Initializing database...
+2025-12-10T13:27:56.552903237Z 2025-12-10 13:27:56 | INFO     | __main__:start_web_server:27 - 🌐 Web server started on http://0.0.0.0:5000
+2025-12-10T13:27:56.875880575Z 2025-12-10 13:27:56 | INFO     | bot.database:init_db:26 - ✅ Database initialized successfully
+2025-12-10T13:27:56.887712146Z 2025-12-10 13:27:56 | WARNING  | bot.services.cache:connect:25 - ⚠️ Redis connection failed: Connection closed by server.. Running without cache.
+2025-12-10T13:27:57.759735498Z 2025-12-10 13:27:57 | INFO     | bot.main:on_startup:44 - ✅ Bot started: @QuantumPannel_bot
+2025-12-10T13:27:58.511843046Z ==> Your service is live 🎉
+2025-12-10T13:27:58.706224906Z ==> 
+2025-12-10T13:27:58.900766835Z ==> ///////////////////////////////////////////////////////////
+2025-12-10T13:27:59.098596004Z ==> 
+2025-12-10T13:27:59.282809944Z ==> Available at your primary URL https://quantumpanel-bot.onrender.com
+2025-12-10T13:27:59.468395026Z ==> 
+2025-12-10T13:27:59.652783056Z ==> ///////////////////////////////////////////////////////////
+2025-12-10T13:28:02.24896562Z Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-12-10T13:28:02.24898694Z Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8328016316)
+2025-12-10T13:28:07.692159955Z Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-12-10T13:28:07.692185666Z Sleep for 1.283958 seconds and try again... (tryings = 1, bot id = 8328016316)
+2025-12-10T13:28:13.787907152Z Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-12-10T13:28:13.787928272Z Sleep for 1.583649 seconds and try again... (tryings = 2, bot id = 8328016316)
+2025-12-10T13:28:20.60314651Z Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-12-10T13:28:20.603177941Z Sleep for 1.947880 seconds and try again... (tryings = 3, bot id = 8328016316)
+2025-12-10T13:28:28.287673032Z Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-12-10T13:28:28.287970028Z Sleep for 2.558028 seconds and try again... (tryings = 4, bot id = 8328016316)
+2025-12-10T13:28:35.19012608Z Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-12-10T13:28:35.190238452Z Sleep for 3.339410 seconds and try again... (tryings = 5, bot id = 8328016316)
+2025-12-10T13:28:42.85011372Z Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-12-10T13:28:42.850193732Z Sleep for 4.369038 seconds and try again... (tryings = 6, bot id = 8328016316)
+2025-12-10T13:28:51.889892736Z Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-12-10T13:28:51.889918657Z Sleep for 5.116973 seconds and try again... (tryings = 7, bot id = 8328016316)
+2025-12-10T13:29:02.442608622Z 2025-12-10 13:29:02 | INFO     | bot.handlers.user:cmd_start:46 - 👤 /start from user 8456909841
+2025-12-10T13:29:02.756580321Z Cause exception while process update id=395272654 by bot id=8328016316
+2025-12-10T13:29:02.756599661Z ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column users.is_banned does not exist
+2025-12-10T13:29:02.756604691Z [SQL: SELECT users.id, users.telegram_id, users.username, users.first_name, users.last_name, users.balance, users.status, users.is_reseller, users.is_banned, users.last_purchase_at, users.created_at, users.updated_at 
+2025-12-10T13:29:02.756610001Z FROM users 
+2025-12-10T13:29:02.756614391Z WHERE users.telegram_id = $1::BIGINT]
+2025-12-10T13:29:02.756618471Z [parameters: (8456909841,)]
+2025-12-10T13:29:02.756622322Z (Background on this error at: https://sqlalche.me/e/20/f405)
+2025-12-10T13:29:02.756625871Z Traceback (most recent call last):
+2025-12-10T13:29:02.756629842Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 526, in _prepare_and_execute
+2025-12-10T13:29:02.756633442Z     prepared_stmt, attributes = await adapt_connection._prepare(
+2025-12-10T13:29:02.756637102Z                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756640532Z         operation, self._invalidate_schema_cache_asof
+2025-12-10T13:29:02.756644102Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756647792Z     )
+2025-12-10T13:29:02.756651352Z     ^
+2025-12-10T13:29:02.756667283Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 773, in _prepare
+2025-12-10T13:29:02.756671432Z     prepared_stmt = await self._connection.prepare(
+2025-12-10T13:29:02.756674993Z                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756680213Z         operation, name=self._prepared_statement_name_func()
+2025-12-10T13:29:02.756683743Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756687173Z     )
+2025-12-10T13:29:02.756690943Z     ^
+2025-12-10T13:29:02.756694963Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 638, in prepare
+2025-12-10T13:29:02.756698793Z     return await self._prepare(
+2025-12-10T13:29:02.756702563Z            ^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756706993Z     ...<4 lines>...
+2025-12-10T13:29:02.756710623Z     )
+2025-12-10T13:29:02.756714853Z     ^
+2025-12-10T13:29:02.756718984Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 657, in _prepare
+2025-12-10T13:29:02.756723154Z     stmt = await self._get_statement(
+2025-12-10T13:29:02.756727344Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756731254Z     ...<5 lines>...
+2025-12-10T13:29:02.756735314Z     )
+2025-12-10T13:29:02.756739274Z     ^
+2025-12-10T13:29:02.756744064Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/asyncpg/connection.py", line 443, in _get_statement
+2025-12-10T13:29:02.756747814Z     statement = await self._protocol.prepare(
+2025-12-10T13:29:02.756751494Z                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756755084Z     ...<5 lines>...
+2025-12-10T13:29:02.756758685Z     )
+2025-12-10T13:29:02.756762385Z     ^
+2025-12-10T13:29:02.756766705Z   File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+2025-12-10T13:29:02.756771125Z asyncpg.exceptions.UndefinedColumnError: column users.is_banned does not exist
+2025-12-10T13:29:02.756775785Z 
+2025-12-10T13:29:02.756799305Z The above exception was the direct cause of the following exception:
+2025-12-10T13:29:02.756804475Z 
+2025-12-10T13:29:02.756807866Z Traceback (most recent call last):
+2025-12-10T13:29:02.756810786Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+2025-12-10T13:29:02.756813766Z     self.dialect.do_execute(
+2025-12-10T13:29:02.756816316Z     ~~~~~~~~~~~~~~~~~~~~~~~^
+2025-12-10T13:29:02.756818976Z         cursor, str_statement, effective_parameters, context
+2025-12-10T13:29:02.756821186Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756823226Z     )
+2025-12-10T13:29:02.756825306Z     ^
+2025-12-10T13:29:02.756827706Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+2025-12-10T13:29:02.756829816Z     cursor.execute(statement, parameters)
+2025-12-10T13:29:02.756831876Z     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756833966Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+2025-12-10T13:29:02.756835976Z     self._adapt_connection.await_(
+2025-12-10T13:29:02.756838006Z     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-12-10T13:29:02.756840176Z         self._prepare_and_execute(operation, parameters)
+2025-12-10T13:29:02.756842226Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756844216Z     )
+2025-12-10T13:29:02.756846276Z     ^
+2025-12-10T13:29:02.756848316Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+2025-12-10T13:29:02.756850467Z     return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+2025-12-10T13:29:02.756852567Z            ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+2025-12-10T13:29:02.756854796Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+2025-12-10T13:29:02.756856927Z     value = await result
+2025-12-10T13:29:02.756859017Z             ^^^^^^^^^^^^
+2025-12-10T13:29:02.756861097Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+2025-12-10T13:29:02.756863177Z     self._handle_exception(error)
+2025-12-10T13:29:02.756865237Z     ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+2025-12-10T13:29:02.756867337Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+2025-12-10T13:29:02.756869407Z     self._adapt_connection._handle_exception(error)
+2025-12-10T13:29:02.756871497Z     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+2025-12-10T13:29:02.756882757Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+2025-12-10T13:29:02.756885167Z     raise translated_error from error
+2025-12-10T13:29:02.756887377Z sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedColumnError'>: column users.is_banned does not exist
+2025-12-10T13:29:02.756889317Z 
+2025-12-10T13:29:02.756891447Z The above exception was the direct cause of the following exception:
+2025-12-10T13:29:02.756893348Z 
+2025-12-10T13:29:02.756895377Z Traceback (most recent call last):
+2025-12-10T13:29:02.756897477Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 320, in _process_update
+2025-12-10T13:29:02.756899577Z     response = await self.feed_update(bot, update, **kwargs)
+2025-12-10T13:29:02.756906518Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756908718Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 164, in feed_update
+2025-12-10T13:29:02.756910878Z     response = await self.update.wrap_outer_middleware(
+2025-12-10T13:29:02.756912898Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756914948Z     ...<7 lines>...
+2025-12-10T13:29:02.756917018Z     )
+2025-12-10T13:29:02.756919098Z     ^
+2025-12-10T13:29:02.756921148Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/middlewares/error.py", line 27, in __call__
+2025-12-10T13:29:02.756923288Z     return await handler(event, data)
+2025-12-10T13:29:02.756925538Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756927608Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/middlewares/user_context.py", line 58, in __call__
+2025-12-10T13:29:02.756929628Z     return await handler(event, data)
+2025-12-10T13:29:02.756931668Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756933798Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/fsm/middleware.py", line 43, in __call__
+2025-12-10T13:29:02.756935878Z     return await handler(event, data)
+2025-12-10T13:29:02.756937928Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756940069Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 126, in trigger
+2025-12-10T13:29:02.756942149Z     return await wrapped_inner(event, kwargs)
+2025-12-10T13:29:02.756944198Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756946269Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+2025-12-10T13:29:02.756948399Z     return await wrapped()
+2025-12-10T13:29:02.756950499Z            ^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756952709Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 283, in _listen_update
+2025-12-10T13:29:02.756955219Z     return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+2025-12-10T13:29:02.756957369Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756959679Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/router.py", line 161, in propagate_event
+2025-12-10T13:29:02.756961759Z     return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+2025-12-10T13:29:02.756963779Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756965889Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/router.py", line 153, in _wrapped
+2025-12-10T13:29:02.756967949Z     return await self._propagate_event(
+2025-12-10T13:29:02.756969999Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.756972429Z     ...<4 lines>...
+2025-12-10T13:29:02.756974439Z     )
+2025-12-10T13:29:02.756976479Z     ^
+2025-12-10T13:29:02.756978579Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/router.py", line 189, in _propagate_event
+2025-12-10T13:29:02.756980589Z     response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
+2025-12-10T13:29:02.756982629Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.75698473Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/router.py", line 161, in propagate_event
+2025-12-10T13:29:02.75699005Z     return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+2025-12-10T13:29:02.756992399Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.75699448Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/router.py", line 153, in _wrapped
+2025-12-10T13:29:02.75699652Z     return await self._propagate_event(
+2025-12-10T13:29:02.75699865Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.75700077Z     ...<4 lines>...
+2025-12-10T13:29:02.75700281Z     )
+2025-12-10T13:29:02.75700489Z     ^
+2025-12-10T13:29:02.75700696Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/router.py", line 181, in _propagate_event
+2025-12-10T13:29:02.7570092Z     response = await observer.trigger(event, **kwargs)
+2025-12-10T13:29:02.75701128Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.75701332Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 126, in trigger
+2025-12-10T13:29:02.75701553Z     return await wrapped_inner(event, kwargs)
+2025-12-10T13:29:02.75702323Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.75702565Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+2025-12-10T13:29:02.75702774Z     return await wrapped()
+2025-12-10T13:29:02.75702986Z            ^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.757031991Z   File "/opt/render/project/src/bot/handlers/user.py", line 50, in cmd_start
+2025-12-10T13:29:02.75703408Z     user = await user_service.get_or_create_user(
+2025-12-10T13:29:02.757036071Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.757038171Z     ...<4 lines>...
+2025-12-10T13:29:02.757040381Z     )
+2025-12-10T13:29:02.757042501Z     ^
+2025-12-10T13:29:02.757044681Z   File "/opt/render/project/src/bot/services/user_service.py", line 31, in get_or_create_user
+2025-12-10T13:29:02.757046991Z     result = await self.session.execute(stmt)
+2025-12-10T13:29:02.757068251Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.757074091Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/ext/asyncio/session.py", line 449, in execute
+2025-12-10T13:29:02.757076612Z     result = await greenlet_spawn(
+2025-12-10T13:29:02.757078752Z              ^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.757080921Z     ...<6 lines>...
+2025-12-10T13:29:02.757083041Z     )
+2025-12-10T13:29:02.757085212Z     ^
+2025-12-10T13:29:02.757087522Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+2025-12-10T13:29:02.757089852Z     result = context.throw(*sys.exc_info())
+2025-12-10T13:29:02.757092182Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+2025-12-10T13:29:02.757094422Z     return self._execute_internal(
+2025-12-10T13:29:02.757096652Z            ~~~~~~~~~~~~~~~~~~~~~~^
+2025-12-10T13:29:02.757098852Z         statement,
+2025-12-10T13:29:02.757101002Z         ^^^^^^^^^^
+2025-12-10T13:29:02.757103232Z     ...<4 lines>...
+2025-12-10T13:29:02.757105562Z         _add_event=_add_event,
+2025-12-10T13:29:02.757108152Z         ^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.757110712Z     )
+2025-12-10T13:29:02.757113232Z     ^
+2025-12-10T13:29:02.757116082Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2249, in _execute_internal
+2025-12-10T13:29:02.757122733Z     result: Result[Any] = compile_state_cls.orm_execute_statement(
+2025-12-10T13:29:02.757125102Z                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-12-10T13:29:02.757127222Z         self,
+2025-12-10T13:29:02.757129253Z         ^^^^^
+2025-12-10T13:29:02.757131373Z     ...<4 lines>...
+2025-12-10T13:29:02.757133433Z         conn,
+2025-12-10T13:29:02.757135523Z         ^^^^^
+2025-12-10T13:29:02.757137623Z     )
+2025-12-10T13:29:02.757139753Z     ^
+2025-12-10T13:29:02.757142563Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+2025-12-10T13:29:02.757144703Z     result = conn.execute(
+2025-12-10T13:29:02.757146823Z         statement, params or {}, execution_options=execution_options
+2025-12-10T13:29:02.757148843Z     )
+2025-12-10T13:29:02.757150953Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+2025-12-10T13:29:02.757152973Z     return meth(
+2025-12-10T13:29:02.757155023Z         self,
+2025-12-10T13:29:02.757157093Z         distilled_parameters,
+2025-12-10T13:29:02.757159173Z         execution_options or NO_OPTIONS,
+2025-12-10T13:29:02.757161243Z     )
+2025-12-10T13:29:02.757163323Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+2025-12-10T13:29:02.757165443Z     return connection._execute_clauseelement(
+2025-12-10T13:29:02.757167563Z            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-12-10T13:29:02.757169674Z         self, distilled_params, execution_options
+2025-12-10T13:29:02.757171734Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.757173814Z     )
+2025-12-10T13:29:02.757175794Z     ^
+2025-12-10T13:29:02.757177934Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+2025-12-10T13:29:02.757180014Z     ret = self._execute_context(
+2025-12-10T13:29:02.757182054Z         dialect,
+2025-12-10T13:29:02.757184154Z     ...<8 lines>...
+2025-12-10T13:29:02.757186184Z         cache_hit=cache_hit,
+2025-12-10T13:29:02.757188164Z     )
+2025-12-10T13:29:02.757190534Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+2025-12-10T13:29:02.757192624Z     return self._exec_single_context(
+2025-12-10T13:29:02.757194694Z            ~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-12-10T13:29:02.757196864Z         dialect, context, statement, parameters
+2025-12-10T13:29:02.757198934Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.757200954Z     )
+2025-12-10T13:29:02.757203014Z     ^
+2025-12-10T13:29:02.757205064Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+2025-12-10T13:29:02.757207104Z     self._handle_dbapi_exception(
+2025-12-10T13:29:02.757209144Z     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-12-10T13:29:02.757211324Z         e, str_statement, effective_parameters, cursor, context
+2025-12-10T13:29:02.757213375Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.757215384Z     )
+2025-12-10T13:29:02.757217415Z     ^
+2025-12-10T13:29:02.757219515Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+2025-12-10T13:29:02.757221725Z     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+2025-12-10T13:29:02.757227055Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+2025-12-10T13:29:02.757229305Z     self.dialect.do_execute(
+2025-12-10T13:29:02.757231375Z     ~~~~~~~~~~~~~~~~~~~~~~~^
+2025-12-10T13:29:02.757233445Z         cursor, str_statement, effective_parameters, context
+2025-12-10T13:29:02.757235525Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.757237565Z     )
+2025-12-10T13:29:02.757239705Z     ^
+2025-12-10T13:29:02.757244015Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+2025-12-10T13:29:02.757246295Z     cursor.execute(statement, parameters)
+2025-12-10T13:29:02.757248405Z     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.757261356Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+2025-12-10T13:29:02.757264036Z     self._adapt_connection.await_(
+2025-12-10T13:29:02.757266126Z     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-12-10T13:29:02.757268166Z         self._prepare_and_execute(operation, parameters)
+2025-12-10T13:29:02.757270166Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-10T13:29:02.757272266Z     )
+2025-12-10T13:29:02.757274326Z     ^
+2025-12-10T13:29:02.757276406Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+2025-12-10T13:29:02.757278616Z     return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+2025-12-10T13:29:02.757280786Z            ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+2025-12-10T13:29:02.757282816Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+2025-12-10T13:29:02.757284806Z     value = await result
+2025-12-10T13:29:02.757286956Z             ^^^^^^^^^^^^
+2025-12-10T13:29:02.757289066Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+2025-12-10T13:29:02.757291116Z     self._handle_exception(error)
+2025-12-10T13:29:02.757293136Z     ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+2025-12-10T13:29:02.757295226Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+2025-12-10T13:29:02.757297356Z     self._adapt_connection._handle_exception(error)
+2025-12-10T13:29:02.757299366Z     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+2025-12-10T13:29:02.757301466Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+2025-12-10T13:29:02.757303546Z     raise translated_error from error
+2025-12-10T13:29:02.757306137Z sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column users.is_banned does not exist
+2025-12-10T13:29:02.757308386Z [SQL: SELECT users.id, users.telegram_id, users.username, users.first_name, users.last_name, users.balance, users.status, users.is_reseller, users.is_banned, users.last_purchase_at, users.created_at, users.updated_at 
+2025-12-10T13:29:02.757310467Z FROM users 
+2025-12-10T13:29:02.757312537Z WHERE users.telegram_id = $1::BIGINT]
+2025-12-10T13:29:02.757314597Z [parameters: (8456909841,)]
+2025-12-10T13:29:02.757316627Z (Background on this error at: https://sqlalche.me/e/20/f405)
