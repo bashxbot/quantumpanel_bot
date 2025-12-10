@@ -58,6 +58,7 @@ class UserService:
             "balance": user.balance,
             "status": user.status.value,
             "is_reseller": user.is_reseller,
+            "is_banned": getattr(user, 'is_banned', False),
         })
         
         return user
