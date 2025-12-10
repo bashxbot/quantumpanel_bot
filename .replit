@@ -1,7 +1,7 @@
-modules = ["python-3.11"]
+modules = ["python-3.11", "web"]
 
 [nix]
-channel = "stable-24_11"
+channel = "stable-25_05"
 packages = ["freetype", "jq", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "postgresql", "redis", "tcl", "tk", "zlib"]
 
 [env]
