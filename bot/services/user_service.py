@@ -119,3 +119,40 @@ class UserService:
         stmt = select(User).where(User.is_reseller == True).order_by(User.created_at.desc())
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
+    
+    async def get_user_by_username(self, username: str) -> Optional[User]:
+        clean_username = username.lstrip('@')
+        stmt = select(User).where(User.username == clean_username)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+    
+    async def set_banned(self, user_id: int, is_banned: bool = True) -> bool:
+        stmt = select(User).where(User.id == user_id)
+        result = await self.session.execute(stmt)
+        user = result.scalar_one_or_none()
+        
+        if user:
+            user.is_banned = is_banned
+            await self.session.commit()
+            await cache.delete(f"user:{user.telegram_id}")
+            logger.info(f"{'🚫' if is_banned else '✅'} User {user_id} ban status: {is_banned}")
+            return True
+        return False
+    
+    async def set_balance(self, user_id: int, amount: float) -> bool:
+        stmt = select(User).where(User.id == user_id)
+        result = await self.session.execute(stmt)
+        user = result.scalar_one_or_none()
+        
+        if user:
+            user.balance = amount
+            await self.session.commit()
+            await cache.delete(f"user:{user.telegram_id}")
+            logger.info(f"💰 Balance set for user {user_id}: {amount}")
+            return True
+        return False
+    
+    async def get_premium_users(self) -> List[User]:
+        stmt = select(User).where(User.status == UserStatus.PREMIUM).order_by(User.created_at.desc())
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())

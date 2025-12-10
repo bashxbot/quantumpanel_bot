@@ -28,4 +28,7 @@ mode = "sequential"
 task = "shell.exec"
 args = "python3 web_server.py"
 
+[agent]
+expertMode = true
+
 # Remove unused ports, they were for Mastra Node apps

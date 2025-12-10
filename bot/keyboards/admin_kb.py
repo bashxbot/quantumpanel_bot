@@ -9,6 +9,9 @@ def admin_main_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="🛠 Manage Products", callback_data="admin:products")
     )
     builder.row(
+        InlineKeyboardButton(text="👤 User Management", callback_data="admin:usermgmt")
+    )
+    builder.row(
         InlineKeyboardButton(text="⭐ Manage Premium Users", callback_data="admin:premium")
     )
     builder.row(
@@ -343,5 +346,36 @@ def statistics_keyboard() -> InlineKeyboardMarkup:
     )
     builder.row(
         InlineKeyboardButton(text="◀️ Back to Admin", callback_data="admin:back")
+    )
+    return builder.as_markup()
+
+
+def user_management_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="💰 Add Balance", callback_data="admin:usermgmt:addbalance")
+    )
+    builder.row(
+        InlineKeyboardButton(text="💸 Remove Balance", callback_data="admin:usermgmt:removebalance")
+    )
+    builder.row(
+        InlineKeyboardButton(text="⭐ Promote to Premium", callback_data="admin:usermgmt:promote")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🚫 Ban User", callback_data="admin:usermgmt:ban")
+    )
+    builder.row(
+        InlineKeyboardButton(text="✅ Unban User", callback_data="admin:usermgmt:unban")
+    )
+    builder.row(
+        InlineKeyboardButton(text="◀️ Back to Admin", callback_data="admin:back")
+    )
+    return builder.as_markup()
+
+
+def broadcast_cancel_inline_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="❌ Cancel Broadcast", callback_data="admin:broadcast:stop")
     )
     return builder.as_markup()

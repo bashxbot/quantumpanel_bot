@@ -30,7 +30,9 @@ from bot.keyboards.admin_kb import (
     premium_user_manage_keyboard,
     broadcast_keyboard,
     broadcast_cancel_keyboard,
-    statistics_keyboard
+    statistics_keyboard,
+    user_management_keyboard,
+    broadcast_cancel_inline_keyboard
 )
 from bot.config import config
 
@@ -55,6 +57,10 @@ class AdminStates(StatesGroup):
     waiting_premium_user_id = State()
     waiting_broadcast_text = State()
     waiting_broadcast_photo = State()
+    waiting_usermgmt_user = State()
+    waiting_usermgmt_amount = State()
+
+broadcast_cancelled = {}
 
 
 async def is_admin_check(user_id: int) -> bool:

@@ -22,6 +22,7 @@ class User(Base, TimestampMixin):
     balance = Column(Float, default=0.0, nullable=False)
     status = Column(SQLEnum(UserStatus), default=UserStatus.FREE, nullable=False)
     is_reseller = Column(Boolean, default=False, nullable=False)
+    is_banned = Column(Boolean, default=False, nullable=False)
     last_purchase_at = Column(DateTime, nullable=True)
     
     orders = relationship("Order", back_populates="user", lazy="selectin")
