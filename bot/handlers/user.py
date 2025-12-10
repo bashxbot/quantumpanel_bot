@@ -54,6 +54,13 @@ async def cmd_start(message: Message):
             last_name=message.from_user.last_name
         )
         
+        if getattr(user, 'is_banned', False):
+            await message.answer(
+                "🚫 <b>Your account has been banned.</b>\n\nPlease contact support if you believe this is an error.",
+                parse_mode=ParseMode.HTML
+            )
+            return
+        
         is_premium = user.status == UserStatus.PREMIUM
         
         text = Templates.user_dashboard(
@@ -170,8 +177,8 @@ async def show_product_detail(callback: CallbackQuery):
             await callback.answer("❌ Product not found!", show_alert=True)
             return
         
-        # Check stock for each price option
         prices_with_stock = []
+        total_stock = 0
         for pr in product.prices:
             key = await product_service.get_available_key(product_id, pr.duration)
             prices_with_stock.append({
@@ -180,28 +187,30 @@ async def show_product_detail(callback: CallbackQuery):
                 "price": pr.price,
                 "in_stock": key is not None
             })
+            if key:
+                total_stock += 1
+        
+        stock_count = await product_service.get_product_stock(product_id)
         
         product_data = {
             "id": product.id,
             "name": product.name,
             "description": product.description,
-            "prices": prices_with_stock
+            "prices": prices_with_stock,
+            "stock": stock_count
         }
         
-        text = Templates.product_detail(product_data)
+        text = Templates.product_detail_user(product_data, is_premium=is_premium)
         keyboard = product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium)
         
-        # If product has an image, show it
         if product.image_file_id:
             from aiogram.types import InputMediaPhoto
             if callback.message.content_type == ContentType.PHOTO:
-                # Edit the existing photo to show product image
                 await callback.message.edit_media(
                     media=InputMediaPhoto(media=product.image_file_id, caption=text, parse_mode=ParseMode.HTML),
                     reply_markup=keyboard
                 )
             else:
-                # Delete the text message and send a new photo using bot instance
                 chat_id = callback.message.chat.id
                 await callback.message.delete()
                 await callback.bot.send_photo(

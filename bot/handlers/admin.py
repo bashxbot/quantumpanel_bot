@@ -1201,40 +1201,80 @@ async def remove_seller(callback: CallbackQuery):
 
 
 @router.callback_query(F.data == "admin:credits")
-async def manage_credits(callback: CallbackQuery):
+async def manage_credits(callback: CallbackQuery, state: FSMContext):
     if not await is_admin_check(callback.from_user.id):
         await callback.answer("⚠️ Access denied!", show_alert=True)
         return
     
-    async with async_session() as session:
-        user_service = UserService(session)
-        users = await user_service.get_all_users()
-        
-        users_data = [
-            {
-                "id": u.id,
-                "telegram_id": u.telegram_id,
-                "username": u.username,
-                "first_name": u.first_name,
-                "balance": u.balance
-            }
-            for u in users[:20]
-        ]
-        
-        text = f"""
+    await state.set_state(AdminStates.waiting_user_telegram_id)
+    await state.update_data(credits_flow=True)
+    
+    text = f"""
 {Templates.DIVIDER}
 💵 <b>MANAGE CREDITS</b>
 {Templates.DIVIDER}
 
-Select a user to manage credits:
+Send the <b>@username</b> or <b>Telegram ID</b> of the user to manage credits:
+"""
+    
+    await callback.message.edit_text(
+        text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=back_to_admin_keyboard()
+    )
+    await callback.answer()
+
+
+@router.message(AdminStates.waiting_user_telegram_id)
+async def process_credits_user(message: Message, state: FSMContext):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    user_input = message.text.strip()
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        
+        if user_input.startswith("@"):
+            user = await user_service.get_user_by_username(user_input)
+        else:
+            try:
+                telegram_id = int(user_input)
+                user = await user_service.get_user_by_telegram_id(telegram_id)
+            except ValueError:
+                await message.answer(
+                    Templates.error("Invalid input! Send @username or Telegram ID."),
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=back_to_admin_keyboard()
+                )
+                return
+        
+        if not user:
+            await message.answer(
+                Templates.error("User not found! They need to start the bot first."),
+                parse_mode=ParseMode.HTML,
+                reply_markup=back_to_admin_keyboard()
+            )
+            await state.clear()
+            return
+        
+        await state.clear()
+        
+        text = f"""
+{Templates.DIVIDER}
+💵 <b>USER CREDITS</b>
+{Templates.DIVIDER}
+
+👤 <b>User:</b> {user.first_name or user.username or user.telegram_id}
+🆔 <b>Telegram ID:</b> <code>{user.telegram_id}</code>
+💰 <b>Balance:</b> <code>${user.balance:.2f}</code>
 """
         
-        await callback.message.edit_text(
+        await message.answer(
             text,
             parse_mode=ParseMode.HTML,
-            reply_markup=credits_keyboard(users_data)
+            reply_markup=user_credits_keyboard(user.id)
         )
-    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("admin:credits:user:"))
@@ -1565,12 +1605,25 @@ async def broadcast_cancel(callback: CallbackQuery, state: FSMContext):
     return await admin_back(callback, state)
 
 
+@router.callback_query(F.data == "admin:broadcast:stop")
+async def broadcast_stop(callback: CallbackQuery, state: FSMContext):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    broadcast_cancelled[callback.from_user.id] = True
+    await callback.answer("🛑 Stopping broadcast...", show_alert=True)
+
+
 @router.message(AdminStates.waiting_broadcast_text)
 async def process_broadcast_text(message: Message, state: FSMContext):
     if not await is_admin_check(message.from_user.id):
         return
     
     import asyncio
+    
+    admin_id = message.from_user.id
+    broadcast_cancelled[admin_id] = False
     
     async with async_session() as session:
         user_service = UserService(session)
@@ -1582,10 +1635,21 @@ async def process_broadcast_text(message: Message, state: FSMContext):
         
         progress_msg = await message.answer(
             Templates.broadcast_progress(total, sent, failed),
-            parse_mode=ParseMode.HTML
+            parse_mode=ParseMode.HTML,
+            reply_markup=broadcast_cancel_inline_keyboard()
         )
         
         for i, user in enumerate(all_users):
+            if broadcast_cancelled.get(admin_id, False):
+                await progress_msg.edit_text(
+                    f"🛑 <b>Broadcast Cancelled!</b>\n\n✅ Sent: {sent}\n❌ Failed: {failed}\n⏳ Remaining: {total - sent - failed}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=back_to_admin_keyboard()
+                )
+                broadcast_cancelled[admin_id] = False
+                await state.clear()
+                return
+            
             try:
                 await message.bot.send_message(
                     chat_id=user.telegram_id,
@@ -1601,7 +1665,8 @@ async def process_broadcast_text(message: Message, state: FSMContext):
                 try:
                     await progress_msg.edit_text(
                         Templates.broadcast_progress(total, sent, failed),
-                        parse_mode=ParseMode.HTML
+                        parse_mode=ParseMode.HTML,
+                        reply_markup=broadcast_cancel_inline_keyboard()
                     )
                 except:
                     pass
@@ -1625,6 +1690,9 @@ async def process_broadcast_photo(message: Message, state: FSMContext):
     
     import asyncio
     
+    admin_id = message.from_user.id
+    broadcast_cancelled[admin_id] = False
+    
     photo_file_id = message.photo[-1].file_id
     caption = message.caption or ""
     
@@ -1638,10 +1706,21 @@ async def process_broadcast_photo(message: Message, state: FSMContext):
         
         progress_msg = await message.answer(
             Templates.broadcast_progress(total, sent, failed),
-            parse_mode=ParseMode.HTML
+            parse_mode=ParseMode.HTML,
+            reply_markup=broadcast_cancel_inline_keyboard()
         )
         
         for i, user in enumerate(all_users):
+            if broadcast_cancelled.get(admin_id, False):
+                await progress_msg.edit_text(
+                    f"🛑 <b>Broadcast Cancelled!</b>\n\n✅ Sent: {sent}\n❌ Failed: {failed}\n⏳ Remaining: {total - sent - failed}",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=back_to_admin_keyboard()
+                )
+                broadcast_cancelled[admin_id] = False
+                await state.clear()
+                return
+            
             try:
                 await message.bot.send_photo(
                     chat_id=user.telegram_id,
@@ -1658,7 +1737,8 @@ async def process_broadcast_photo(message: Message, state: FSMContext):
                 try:
                     await progress_msg.edit_text(
                         Templates.broadcast_progress(total, sent, failed),
-                        parse_mode=ParseMode.HTML
+                        parse_mode=ParseMode.HTML,
+                        reply_markup=broadcast_cancel_inline_keyboard()
                     )
                 except:
                     pass
@@ -1697,3 +1777,363 @@ async def show_top_sellers(callback: CallbackQuery):
             reply_markup=statistics_keyboard()
         )
     await callback.answer()
+
+
+# =============================================
+# USER MANAGEMENT HANDLERS
+# =============================================
+
+@router.callback_query(F.data == "admin:usermgmt")
+async def user_management_menu(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    text = f"""
+{Templates.DIVIDER}
+👤 <b>USER MANAGEMENT</b>
+{Templates.DIVIDER}
+
+Manage user accounts, balances, and status.
+
+Select an action:
+"""
+    
+    await callback.message.edit_text(
+        text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=user_management_keyboard()
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:usermgmt:"))
+async def user_management_action(callback: CallbackQuery, state: FSMContext):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    action = callback.data.split(":")[-1]
+    
+    await state.update_data(usermgmt_action=action)
+    await state.set_state(AdminStates.waiting_usermgmt_user)
+    
+    action_prompts = {
+        "addbalance": "Send the <b>@username</b> or <b>Telegram ID</b> to add balance:",
+        "removebalance": "Send the <b>@username</b> or <b>Telegram ID</b> to remove balance:",
+        "promote": "Send the <b>@username</b> or <b>Telegram ID</b> to promote to Premium:",
+        "ban": "Send the <b>@username</b> or <b>Telegram ID</b> to ban:",
+        "unban": "Send the <b>@username</b> or <b>Telegram ID</b> to unban:"
+    }
+    
+    await callback.message.edit_text(
+        Templates.info(action_prompts.get(action, "Send the @username or Telegram ID:")),
+        parse_mode=ParseMode.HTML,
+        reply_markup=back_to_admin_keyboard()
+    )
+    await callback.answer()
+
+
+@router.message(AdminStates.waiting_usermgmt_user)
+async def process_usermgmt_user(message: Message, state: FSMContext):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    data = await state.get_data()
+    action = data.get("usermgmt_action")
+    user_input = message.text.strip()
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        
+        if user_input.startswith("@"):
+            user = await user_service.get_user_by_username(user_input)
+        else:
+            try:
+                telegram_id = int(user_input)
+                user = await user_service.get_user_by_telegram_id(telegram_id)
+            except ValueError:
+                await message.answer(
+                    Templates.error("Invalid input! Send @username or Telegram ID."),
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=back_to_admin_keyboard()
+                )
+                return
+        
+        if not user:
+            await message.answer(
+                Templates.error("User not found! They need to start the bot first."),
+                parse_mode=ParseMode.HTML,
+                reply_markup=back_to_admin_keyboard()
+            )
+            await state.clear()
+            return
+        
+        if action == "promote":
+            await user_service.set_premium(user.id, True)
+            await state.clear()
+            await message.answer(
+                Templates.success(f"User <b>{user.first_name or user.username or user.telegram_id}</b> is now Premium! ⭐"),
+                parse_mode=ParseMode.HTML,
+                reply_markup=back_to_admin_keyboard()
+            )
+            return
+        
+        elif action == "ban":
+            await user_service.set_banned(user.id, True)
+            await state.clear()
+            await message.answer(
+                Templates.success(f"User <b>{user.first_name or user.username or user.telegram_id}</b> has been banned! 🚫"),
+                parse_mode=ParseMode.HTML,
+                reply_markup=back_to_admin_keyboard()
+            )
+            return
+        
+        elif action == "unban":
+            await user_service.set_banned(user.id, False)
+            await state.clear()
+            await message.answer(
+                Templates.success(f"User <b>{user.first_name or user.username or user.telegram_id}</b> has been unbanned! ✅"),
+                parse_mode=ParseMode.HTML,
+                reply_markup=back_to_admin_keyboard()
+            )
+            return
+        
+        elif action in ("addbalance", "removebalance"):
+            await state.update_data(usermgmt_user_id=user.id, usermgmt_user_name=user.first_name or user.username or str(user.telegram_id))
+            await state.set_state(AdminStates.waiting_usermgmt_amount)
+            
+            action_text = "add" if action == "addbalance" else "remove"
+            await message.answer(
+                Templates.info(f"Send the <b>amount</b> to {action_text}:"),
+                parse_mode=ParseMode.HTML
+            )
+            return
+
+
+@router.message(AdminStates.waiting_usermgmt_amount)
+async def process_usermgmt_amount(message: Message, state: FSMContext):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    try:
+        amount = float(message.text)
+        if amount <= 0:
+            raise ValueError
+    except ValueError:
+        await message.answer(
+            Templates.error("Please send a valid positive amount!"),
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    data = await state.get_data()
+    user_id = data["usermgmt_user_id"]
+    user_name = data["usermgmt_user_name"]
+    action = data["usermgmt_action"]
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        
+        if action == "removebalance":
+            amount = -amount
+        
+        await user_service.update_balance(user_id, amount)
+        
+        await state.clear()
+        
+        action_text = "added to" if action == "addbalance" else "removed from"
+        await message.answer(
+            Templates.success(f"${abs(amount):.2f} {action_text} <b>{user_name}</b>'s balance!"),
+            parse_mode=ParseMode.HTML,
+            reply_markup=back_to_admin_keyboard()
+        )
+
+
+# =============================================
+# ADMIN COMMANDS: /addbalance, /removebalance, /promote, /ban, /unban
+# =============================================
+
+async def parse_user_command(message: Message, command_name: str):
+    parts = message.text.split()
+    if len(parts) < 2:
+        return None, None, f"Usage: /{command_name} (@username or ID) [amount]"
+    
+    user_input = parts[1]
+    amount = None
+    
+    if len(parts) >= 3:
+        try:
+            amount = float(parts[2])
+        except ValueError:
+            return None, None, "Invalid amount!"
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        
+        if user_input.startswith("@"):
+            user = await user_service.get_user_by_username(user_input)
+        else:
+            try:
+                telegram_id = int(user_input)
+                user = await user_service.get_user_by_telegram_id(telegram_id)
+            except ValueError:
+                return None, None, "Invalid username or ID!"
+        
+        if not user:
+            return None, None, "User not found! They need to start the bot first."
+        
+        return user, amount, None
+
+
+@router.message(Command("addbalance"))
+async def cmd_addbalance(message: Message):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    parts = message.text.split()
+    if len(parts) < 3:
+        await message.answer(
+            Templates.info("Usage: /addbalance (@username or ID) amount\n\nExample:\n<code>/addbalance @username 50</code>\n<code>/addbalance 123456789 25.50</code>"),
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    user, amount, error = await parse_user_command(message, "addbalance")
+    
+    if error:
+        await message.answer(Templates.error(error), parse_mode=ParseMode.HTML)
+        return
+    
+    if amount is None or amount <= 0:
+        await message.answer(Templates.error("Please specify a valid positive amount!"), parse_mode=ParseMode.HTML)
+        return
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        await user_service.update_balance(user.id, amount)
+    
+    await message.answer(
+        Templates.success(f"${amount:.2f} added to <b>{user.first_name or user.username or user.telegram_id}</b>'s balance!"),
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(Command("removebalance"))
+async def cmd_removebalance(message: Message):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    parts = message.text.split()
+    if len(parts) < 3:
+        await message.answer(
+            Templates.info("Usage: /removebalance (@username or ID) amount\n\nExample:\n<code>/removebalance @username 50</code>\n<code>/removebalance 123456789 25.50</code>"),
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    user, amount, error = await parse_user_command(message, "removebalance")
+    
+    if error:
+        await message.answer(Templates.error(error), parse_mode=ParseMode.HTML)
+        return
+    
+    if amount is None or amount <= 0:
+        await message.answer(Templates.error("Please specify a valid positive amount!"), parse_mode=ParseMode.HTML)
+        return
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        await user_service.update_balance(user.id, -amount)
+    
+    await message.answer(
+        Templates.success(f"${amount:.2f} removed from <b>{user.first_name or user.username or user.telegram_id}</b>'s balance!"),
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(Command("promote"))
+async def cmd_promote(message: Message):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    parts = message.text.split()
+    if len(parts) < 2:
+        await message.answer(
+            Templates.info("Usage: /promote (@username or ID)\n\nExample:\n<code>/promote @username</code>\n<code>/promote 123456789</code>"),
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    user, _, error = await parse_user_command(message, "promote")
+    
+    if error:
+        await message.answer(Templates.error(error), parse_mode=ParseMode.HTML)
+        return
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        await user_service.set_premium(user.id, True)
+    
+    await message.answer(
+        Templates.success(f"<b>{user.first_name or user.username or user.telegram_id}</b> is now a Premium user! ⭐"),
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(Command("ban"))
+async def cmd_ban(message: Message):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    parts = message.text.split()
+    if len(parts) < 2:
+        await message.answer(
+            Templates.info("Usage: /ban (@username or ID)\n\nExample:\n<code>/ban @username</code>\n<code>/ban 123456789</code>"),
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    user, _, error = await parse_user_command(message, "ban")
+    
+    if error:
+        await message.answer(Templates.error(error), parse_mode=ParseMode.HTML)
+        return
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        await user_service.set_banned(user.id, True)
+    
+    await message.answer(
+        Templates.success(f"<b>{user.first_name or user.username or user.telegram_id}</b> has been banned! 🚫"),
+        parse_mode=ParseMode.HTML
+    )
+
+
+@router.message(Command("unban"))
+async def cmd_unban(message: Message):
+    if not await is_admin_check(message.from_user.id):
+        return
+    
+    parts = message.text.split()
+    if len(parts) < 2:
+        await message.answer(
+            Templates.info("Usage: /unban (@username or ID)\n\nExample:\n<code>/unban @username</code>\n<code>/unban 123456789</code>"),
+            parse_mode=ParseMode.HTML
+        )
+        return
+    
+    user, _, error = await parse_user_command(message, "unban")
+    
+    if error:
+        await message.answer(Templates.error(error), parse_mode=ParseMode.HTML)
+        return
+    
+    async with async_session() as session:
+        user_service = UserService(session)
+        await user_service.set_banned(user.id, False)
+    
+    await message.answer(
+        Templates.success(f"<b>{user.first_name or user.username or user.telegram_id}</b> has been unbanned! ✅"),
+        parse_mode=ParseMode.HTML
+    )

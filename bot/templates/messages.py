@@ -329,6 +329,48 @@ Select an option to manage your panel:
 """
     
     @staticmethod
+    def product_detail_user(product: dict, is_premium: bool = False) -> str:
+        desc = product.get('description', 'No description available')
+        stock = product.get('stock', 0)
+        
+        stock_section = ""
+        if is_premium:
+            stock_section = f"\n📦 <b>Stock Available:</b> {stock} keys\n"
+        
+        if is_premium:
+            return f"""
+{Templates.STAR_LINE}
+     📦 <b>{product['name']}</b>
+{Templates.STAR_LINE}
+
+📝 <b>Description</b>
+{Templates.DIVIDER_THIN}
+{desc}
+{stock_section}
+💰 <b>Select Your Plan</b>
+{Templates.DIVIDER_THIN}
+<i>Choose a duration below to purchase:</i>
+
+{Templates.STAR_LINE}
+"""
+        else:
+            return f"""
+{Templates.STAR_LINE}
+     📦 <b>{product['name']}</b>
+{Templates.STAR_LINE}
+
+📝 <b>Description</b>
+{Templates.DIVIDER_THIN}
+{desc}
+
+🔒 <b>Premium Required</b>
+{Templates.DIVIDER_THIN}
+<i>Upgrade to Premium to view prices and make purchases!</i>
+
+{Templates.STAR_LINE}
+"""
+    
+    @staticmethod
     def purchase_summary(product_name: str, duration: str, price: float, current_balance: float) -> str:
         remaining = current_balance - price
         readable_duration = Templates.get_readable_duration(duration)

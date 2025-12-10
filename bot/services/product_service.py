@@ -179,3 +179,7 @@ class ProductService:
             stmt = stmt.where(ProductKey.is_used == False)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
+    
+    async def get_product_stock(self, product_id: int) -> int:
+        keys_data = await self.get_keys_count(product_id)
+        return keys_data.get("available", 0)
