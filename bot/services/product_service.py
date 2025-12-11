@@ -86,7 +86,7 @@ class ProductService:
             return True
         return False
     
-    async def add_price(self, product_id: int, duration: str, price: int) -> ProductPrice:
+    async def add_price(self, product_id: int, duration: str, price: float) -> ProductPrice:
         existing = await self.get_price(product_id, duration)
         if existing:
             existing.price = price
@@ -183,3 +183,39 @@ class ProductService:
     async def get_product_stock(self, product_id: int) -> int:
         keys_data = await self.get_keys_count(product_id)
         return keys_data.get("available", 0)
+    
+    async def get_stock_per_duration(self, product_id: int) -> dict:
+        """Get available stock count for each duration of a product"""
+        stmt = select(ProductKey).where(
+            ProductKey.product_id == product_id,
+            ProductKey.is_used == False
+        )
+        result = await self.session.execute(stmt)
+        keys = list(result.scalars().all())
+        
+        stock_by_duration = {}
+        for key in keys:
+            duration = key.duration
+            normalized_duration = self._normalize_duration(duration)
+            if normalized_duration not in stock_by_duration:
+                stock_by_duration[normalized_duration] = 0
+            stock_by_duration[normalized_duration] += 1
+        
+        return stock_by_duration
+    
+    def _normalize_duration(self, duration: str) -> str:
+        """Normalize duration string to readable format for consistent matching"""
+        import re
+        if '|' in duration:
+            return duration.split('|')[1]
+        
+        match = re.match(r'^(\d+)(d|m)$', duration.lower().strip())
+        if match:
+            num = int(match.group(1))
+            unit = match.group(2)
+            if unit == 'd':
+                return f"{num} Day{'s' if num > 1 else ''}"
+            else:
+                return f"{num} Month{'s' if num > 1 else ''}"
+        
+        return duration

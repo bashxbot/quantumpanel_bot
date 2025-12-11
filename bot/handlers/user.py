@@ -16,7 +16,8 @@ from bot.keyboards.user_kb import (
     back_to_menu_keyboard,
     products_keyboard,
     product_detail_keyboard,
-    confirm_purchase_keyboard
+    confirm_purchase_keyboard,
+    trusted_sellers_keyboard
 )
 from bot.config import config
 from bot.models import UserStatus
@@ -24,6 +25,26 @@ from bot.models import UserStatus
 router = Router()
 
 BANNER_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "banner.jpg")
+
+
+async def check_maintenance(callback_or_message, user_id: int) -> bool:
+    """Check if maintenance mode is on and user is not admin. Returns True if should block."""
+    if config.bot.maintenance_mode:
+        if user_id != config.bot.root_admin_id:
+            from bot.services.admin_service import AdminService
+            async with async_session() as session:
+                admin_service = AdminService(session)
+                is_admin_user = await admin_service.is_admin(user_id)
+            
+            if not is_admin_user:
+                text = Templates.maintenance_mode()
+                if hasattr(callback_or_message, 'message'):
+                    await callback_or_message.message.answer(text, parse_mode=ParseMode.HTML)
+                    await callback_or_message.answer()
+                else:
+                    await callback_or_message.answer(text, parse_mode=ParseMode.HTML)
+                return True
+    return False
 
 
 async def edit_message(callback: CallbackQuery, text: str, reply_markup=None):
@@ -44,6 +65,9 @@ async def edit_message(callback: CallbackQuery, text: str, reply_markup=None):
 @router.message(Command("start"))
 async def cmd_start(message: Message):
     logger.info(f"👤 /start from user {message.from_user.id}")
+    
+    if await check_maintenance(message, message.from_user.id):
+        return
     
     async with async_session() as session:
         user_service = UserService(session)
@@ -82,6 +106,9 @@ async def cmd_start(message: Message):
 
 @router.callback_query(F.data == "back_to_menu")
 async def back_to_menu(callback: CallbackQuery):
+    if await check_maintenance(callback, callback.from_user.id):
+        return
+    
     async with async_session() as session:
         user_service = UserService(session)
         user = await user_service.get_or_create_user(
@@ -100,12 +127,43 @@ async def back_to_menu(callback: CallbackQuery):
             last_purchase=user.last_purchase_at
         )
         
-        await edit_message(callback, text, main_menu_keyboard(is_premium=is_premium))
+        if callback.message.content_type == ContentType.PHOTO:
+            chat_id = callback.message.chat.id
+            try:
+                await callback.message.delete()
+            except Exception:
+                pass
+            
+            if os.path.exists(BANNER_PATH):
+                photo = FSInputFile(BANNER_PATH)
+                await callback.bot.send_photo(
+                    chat_id=chat_id,
+                    photo=photo,
+                    caption=text,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=main_menu_keyboard(is_premium=is_premium)
+                )
+            else:
+                await callback.bot.send_message(
+                    chat_id=chat_id,
+                    text=text,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=main_menu_keyboard(is_premium=is_premium)
+                )
+        else:
+            await callback.message.edit_text(
+                text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=main_menu_keyboard(is_premium=is_premium)
+            )
     await callback.answer()
 
 
 @router.callback_query(F.data == "trusted_sellers")
 async def show_trusted_sellers(callback: CallbackQuery):
+    if await check_maintenance(callback, callback.from_user.id):
+        return
+    
     async with async_session() as session:
         seller_service = SellerService(session)
         sellers = await seller_service.get_all_sellers(active_only=True)
@@ -123,12 +181,25 @@ async def show_trusted_sellers(callback: CallbackQuery):
         
         text = Templates.trusted_sellers(sellers_data)
         
-        await edit_message(callback, text, back_to_menu_keyboard())
+        chat_id = callback.message.chat.id
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        await callback.bot.send_message(
+            chat_id=chat_id,
+            text=text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=trusted_sellers_keyboard(config.bot.admin_username)
+        )
     await callback.answer()
 
 
 @router.callback_query(F.data == "products")
 async def show_products(callback: CallbackQuery):
+    if await check_maintenance(callback, callback.from_user.id):
+        return
+    
     async with async_session() as session:
         user_service = UserService(session)
         product_service = ProductService(session)
@@ -156,6 +227,9 @@ async def show_products(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("product:"))
 async def show_product_detail(callback: CallbackQuery):
+    if await check_maintenance(callback, callback.from_user.id):
+        return
+    
     product_id = int(callback.data.split(":")[1])
     
     async with async_session() as session:
@@ -170,18 +244,19 @@ async def show_product_detail(callback: CallbackQuery):
             await callback.answer("❌ Product not found!", show_alert=True)
             return
         
+        stock_per_duration = await product_service.get_stock_per_duration(product_id)
+        
         prices_with_stock = []
         total_stock = 0
         for pr in product.prices:
-            key = await product_service.get_available_key(product_id, pr.duration)
+            duration_stock = stock_per_duration.get(pr.duration, 0)
             prices_with_stock.append({
                 "id": pr.id, 
                 "duration": pr.duration, 
                 "price": pr.price,
-                "in_stock": key is not None
+                "in_stock": duration_stock > 0
             })
-            if key:
-                total_stock += 1
+            total_stock += duration_stock
         
         stock_count = await product_service.get_product_stock(product_id)
         
@@ -194,7 +269,7 @@ async def show_product_detail(callback: CallbackQuery):
         }
         
         text = Templates.product_detail_user(product_data, is_premium=is_premium)
-        keyboard = product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium)
+        keyboard = product_detail_keyboard(product_id, product_data["prices"], is_premium=is_premium, stock_per_duration=stock_per_duration)
         
         if product.image_file_id:
             from aiogram.types import InputMediaPhoto
@@ -220,6 +295,9 @@ async def show_product_detail(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("buy:"))
 async def initiate_purchase(callback: CallbackQuery):
+    if await check_maintenance(callback, callback.from_user.id):
+        return
+    
     parts = callback.data.split(":")
     product_id = int(parts[1])
     price_id = int(parts[2])
@@ -266,6 +344,9 @@ async def initiate_purchase(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("confirm_buy:"))
 async def confirm_purchase(callback: CallbackQuery):
+    if await check_maintenance(callback, callback.from_user.id):
+        return
+    
     parts = callback.data.split(":")
     product_id = int(parts[1])
     price_id = int(parts[2])
@@ -312,6 +393,7 @@ async def confirm_purchase(callback: CallbackQuery):
         )
         
         await user_service.update_balance(user.id, -price.price)
+        new_balance = user.balance - price.price
         
         success_msg = Templates.purchase_success(
             product_name=product.name,
@@ -323,12 +405,50 @@ async def confirm_purchase(callback: CallbackQuery):
         
         logger.info(f"✅ Purchase completed: User {user.telegram_id} bought {product.name}")
         
+        try:
+            from datetime import datetime
+            report_channel = config.bot.report_channel
+            if report_channel and report_channel.strip():
+                channel_id = report_channel.strip()
+                if "t.me/" in report_channel:
+                    channel_part = report_channel.split("t.me/")[1]
+                    if channel_part.startswith("+"):
+                        pass
+                    elif not channel_part.startswith("@") and not channel_part.startswith("-"):
+                        channel_id = "@" + channel_part
+                    else:
+                        channel_id = channel_part
+                
+                if channel_id:
+                    report_msg = Templates.purchase_report(
+                        user_name=user.first_name or "User",
+                        user_id=user.telegram_id,
+                        username=user.username or "",
+                        product_name=product.name,
+                        duration=price.duration,
+                        price=price.price,
+                        key_value=key_value,
+                        new_balance=new_balance,
+                        order_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    )
+                    
+                    await callback.bot.send_message(
+                        chat_id=channel_id,
+                        text=report_msg,
+                        parse_mode=ParseMode.HTML
+                    )
+        except Exception as e:
+            logger.error(f"Failed to send purchase report: {e}")
+        
         await edit_message(callback, success_msg, back_to_menu_keyboard())
     await callback.answer()
 
 
 @router.callback_query(F.data == "my_orders")
 async def show_my_orders(callback: CallbackQuery):
+    if await check_maintenance(callback, callback.from_user.id):
+        return
+    
     async with async_session() as session:
         user_service = UserService(session)
         order_service = OrderService(session)
@@ -359,6 +479,9 @@ async def show_my_orders(callback: CallbackQuery):
 
 @router.callback_query(F.data == "add_balance")
 async def show_add_balance(callback: CallbackQuery):
+    if await check_maintenance(callback, callback.from_user.id):
+        return
+    
     text = Templates.add_balance(config.bot.admin_username)
     
     await edit_message(callback, text, back_to_menu_keyboard())
@@ -367,6 +490,9 @@ async def show_add_balance(callback: CallbackQuery):
 
 @router.callback_query(F.data == "upgrade_premium")
 async def show_upgrade_premium(callback: CallbackQuery):
+    if await check_maintenance(callback, callback.from_user.id):
+        return
+    
     text = Templates.upgrade_premium(config.bot.admin_username)
     
     await edit_message(callback, text, back_to_menu_keyboard())

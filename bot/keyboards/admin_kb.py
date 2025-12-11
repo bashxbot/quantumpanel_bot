@@ -3,7 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from typing import List
 
 
-def admin_main_keyboard() -> InlineKeyboardMarkup:
+def admin_main_keyboard(maintenance_mode: bool = False) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         InlineKeyboardButton(text="🛠 Manage Products", callback_data="admin:products")
@@ -31,6 +31,10 @@ def admin_main_keyboard() -> InlineKeyboardMarkup:
     )
     builder.row(
         InlineKeyboardButton(text="📊 Statistics", callback_data="admin:stats")
+    )
+    maintenance_text = "🔴 Maintenance: ON" if maintenance_mode else "🟢 Maintenance: OFF"
+    builder.row(
+        InlineKeyboardButton(text=maintenance_text, callback_data="admin:maintenance:toggle")
     )
     return builder.as_markup()
 

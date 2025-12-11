@@ -116,6 +116,29 @@ Required variables in `.env`:
 - `ADMIN_USERNAME`: Contact username for support messages
 - `DATABASE_URL`: PostgreSQL connection string (postgres:// or postgresql://)
 - `REDIS_URL`: Redis connection string (optional, defaults to localhost)
+- `REPORT_CHANNEL`: Telegram channel link for purchase reports (default: https://t.me/+AZLdQyE7TbEyZTUx)
+
+## Recent Changes (December 2024)
+
+### New Features Added:
+1. **Maintenance Mode**: Admin toggle to enable/disable maintenance mode. When active, non-admin users see a beautiful maintenance message directing them to @TeamQuantumCH channel.
+
+2. **Decimal Price Support**: Prices can now be set with decimal values (e.g., $0.25, $1.50). Balance also supports decimals.
+
+3. **Stock Per Duration Display**: Product buttons now show stock count per duration in brackets (e.g., "🛒 7 Days — $5 【10】").
+
+4. **Purchase Report Channel**: When a key is purchased, a detailed report is sent to the configured REPORT_CHANNEL with user details, product info, key, and balance.
+
+5. **Improved Sellers List**: Sellers list now sends a new message (not update) with a "Contact Admin!" button linking to the admin.
+
+6. **Image Navigation Fix**: When returning from product view to main menu, the banner image is properly restored instead of staying on product image.
+
+### Migration Note:
+If upgrading an existing database, run the price column migration:
+```bash
+python -m bot.migrate_prices
+```
+This converts the price column from INTEGER to REAL to support decimal values.
 
 ### Deployment Considerations
 - Designed for containerized deployment (Docker/Kubernetes)

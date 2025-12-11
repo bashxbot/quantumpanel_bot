@@ -30,6 +30,21 @@ def back_to_menu_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+def trusted_sellers_keyboard(admin_username: str) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    clean_username = admin_username.replace("@", "")
+    builder.row(
+        InlineKeyboardButton(
+            text="✅ Contact Admin!",
+            url=f"https://t.me/{clean_username}"
+        )
+    )
+    builder.row(
+        InlineKeyboardButton(text="◀️ Back to Menu", callback_data="back_to_menu")
+    )
+    return builder.as_markup()
+
+
 def products_keyboard(products: list, is_premium: bool = False) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     
@@ -85,26 +100,38 @@ def get_sort_key(duration: str) -> int:
     return 999
 
 
-def product_detail_keyboard(product_id: int, prices: list, is_premium: bool = True) -> InlineKeyboardMarkup:
+def product_detail_keyboard(product_id: int, prices: list, is_premium: bool = True, stock_per_duration: dict = None) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     
     sorted_prices = sorted(prices, key=lambda p: get_sort_key(p['duration']))
+    stock_per_duration = stock_per_duration or {}
     
     if is_premium:
         for price in sorted_prices:
             readable = get_readable_duration(price['duration'])
             in_stock = price.get('in_stock', True)
+            duration_stock = stock_per_duration.get(price['duration'], 0)
+            
+            price_value = price['price']
+            if isinstance(price_value, float):
+                if price_value == int(price_value):
+                    price_display = f"${int(price_value)}"
+                else:
+                    price_display = f"${price_value:.2f}"
+            else:
+                price_display = f"${price_value}"
+            
             if in_stock:
                 builder.row(
                     InlineKeyboardButton(
-                        text=f"🛒 {readable} — ${price['price']}",
+                        text=f"🛒 {readable} — {price_display} 【{duration_stock}】",
                         callback_data=f"buy:{product_id}:{price['id']}"
                     )
                 )
             else:
                 builder.row(
                     InlineKeyboardButton(
-                        text=f"❌ {readable} — OUT OF STOCK",
+                        text=f"❌ {readable} — OUT OF STOCK 【0】",
                         callback_data="noop"
                     )
                 )

@@ -527,3 +527,86 @@ Select an option to manage your panel:
     @staticmethod
     def confirm(message: str) -> str:
         return f"⚠️ <b>Confirm Action</b>\n\n{message}"
+    
+    @staticmethod
+    def maintenance_mode() -> str:
+        return f"""
+╔══════════════════════════════════════╗
+║                                      ║
+║      🔧 <b>MAINTENANCE MODE</b> 🔧      ║
+║                                      ║
+╚══════════════════════════════════════╝
+
+{Templates.STAR_LINE}
+
+🚧 <b>We're Currently Under Maintenance</b>
+
+<i>Our team is working hard to improve 
+your experience. We'll be back shortly!</i>
+
+{Templates.DIVIDER_THIN}
+
+📢 <b>Stay Updated:</b>
+Join our channel for updates 👇
+
+🔗 <b>@TeamQuantumCH</b>
+
+{Templates.DIVIDER_THIN}
+
+⏳ <i>Thank you for your patience!</i>
+
+{Templates.STAR_LINE}
+
+💎 <b>Quantum Panel</b> - Premium Service
+"""
+    
+    @staticmethod
+    def purchase_report(
+        user_name: str,
+        user_id: int,
+        username: str,
+        product_name: str,
+        duration: str,
+        price: float,
+        key_value: str,
+        new_balance: float,
+        order_time: str
+    ) -> str:
+        readable_duration = Templates.get_readable_duration(duration)
+        username_display = f"@{username}" if username else "N/A"
+        
+        return f"""
+╔══════════════════════════════════════════╗
+║  🎉 <b>KEY PURCHASE SUCCESSFUL!</b> 🎉  ║
+╚══════════════════════════════════════════╝
+
+{Templates.STAR_LINE}
+         📋 <b>ORDER DETAILS</b>
+{Templates.STAR_LINE}
+
+👤 <b>User Information</b>
+{Templates.DIVIDER_THIN}
+   📛 Name: <b>{user_name}</b>
+   🆔 ID: <code>{user_id}</code>
+   👤 Username: {username_display}
+
+📦 <b>Product Details</b>
+{Templates.DIVIDER_THIN}
+   🛍 Product: <b>{product_name}</b>
+   ⏱ Duration: <b>{readable_duration}</b>
+   💰 Price: <code>${price:.2f}</code>
+
+🔑 <b>Key Delivered</b>
+{Templates.DIVIDER_THIN}
+   <code>{key_value}</code>
+
+💳 <b>Balance After Purchase</b>
+{Templates.DIVIDER_THIN}
+   Remaining: <code>${new_balance:.2f}</code>
+
+⏰ <b>Time:</b> {order_time}
+
+{Templates.STAR_LINE}
+    ✨ <b>Quantum Panel</b> ✨
+{Templates.STAR_LINE}
+"""

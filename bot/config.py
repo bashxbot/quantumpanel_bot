@@ -36,7 +36,9 @@ class RedisConfig:
 class BotConfig:
     token: str = os.getenv("BOT_TOKEN", "")
     admin_username: str = os.getenv("ADMIN_USERNAME", "@Admin")
-    root_admin_id: int = int(os.getenv("ROOT_ADMIN_ID", "0"))
+    root_admin_id: int = int(os.getenv("ROOT_ADMIN_ID") or "0")
+    report_channel: str = os.getenv("REPORT_CHANNEL", "")
+    maintenance_mode: bool = False
 
 
 @dataclass

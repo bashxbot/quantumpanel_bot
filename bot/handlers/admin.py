@@ -81,7 +81,7 @@ async def cmd_admin(message: Message):
     await message.answer(
         text,
         parse_mode=ParseMode.HTML,
-        reply_markup=admin_main_keyboard()
+        reply_markup=admin_main_keyboard(config.bot.maintenance_mode)
     )
 
 
@@ -96,9 +96,28 @@ async def admin_back(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(
         text,
         parse_mode=ParseMode.HTML,
-        reply_markup=admin_main_keyboard()
+        reply_markup=admin_main_keyboard(config.bot.maintenance_mode)
     )
     await callback.answer()
+
+
+@router.callback_query(F.data == "admin:maintenance:toggle")
+async def toggle_maintenance(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    config.bot.maintenance_mode = not config.bot.maintenance_mode
+    status = "ON 🔴" if config.bot.maintenance_mode else "OFF 🟢"
+    
+    await callback.answer(f"Maintenance mode is now {status}", show_alert=True)
+    
+    text = Templates.admin_panel()
+    await callback.message.edit_text(
+        text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=admin_main_keyboard(config.bot.maintenance_mode)
+    )
 
 
 
@@ -450,7 +469,7 @@ async def add_price_duration(message: Message, state: FSMContext):
                 continue
             
             try:
-                price = int(price_str)
+                price = float(price_str)
             except ValueError:
                 errors.append(f"Invalid price: {price_str}")
                 continue
@@ -462,7 +481,7 @@ async def add_price_duration(message: Message, state: FSMContext):
                 duration=readable_duration,
                 price=price
             )
-            added_prices.append(f"✅ {readable_duration} - ${price}")
+            added_prices.append(f"✅ {readable_duration} - ${price:.2f}")
     
     await state.clear()
     
