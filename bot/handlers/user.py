@@ -27,6 +27,23 @@ router = Router()
 BANNER_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "banner.jpg")
 
 
+async def check_banned(callback_or_message, user_id: int) -> bool:
+    """Check if user is banned. Returns True if should block."""
+    async with async_session() as session:
+        user_service = UserService(session)
+        user = await user_service.get_user_by_telegram_id(user_id)
+        
+        if user and getattr(user, 'is_banned', False):
+            text = Templates.user_banned(config.bot.admin_username)
+            if hasattr(callback_or_message, 'message'):
+                await callback_or_message.message.answer(text, parse_mode=ParseMode.HTML)
+                await callback_or_message.answer()
+            else:
+                await callback_or_message.answer(text, parse_mode=ParseMode.HTML)
+            return True
+    return False
+
+
 async def check_maintenance(callback_or_message, user_id: int) -> bool:
     """Check if maintenance mode is on and user is not admin. Returns True if should block."""
     if config.bot.maintenance_mode:
@@ -65,6 +82,9 @@ async def edit_message(callback: CallbackQuery, text: str, reply_markup=None):
 @router.message(Command("start"))
 async def cmd_start(message: Message):
     logger.info(f"👤 /start from user {message.from_user.id}")
+    
+    if await check_banned(message, message.from_user.id):
+        return
     
     if await check_maintenance(message, message.from_user.id):
         return
@@ -106,6 +126,8 @@ async def cmd_start(message: Message):
 
 @router.callback_query(F.data == "back_to_menu")
 async def back_to_menu(callback: CallbackQuery):
+    if await check_banned(callback, callback.from_user.id):
+        return
     if await check_maintenance(callback, callback.from_user.id):
         return
     
@@ -161,6 +183,8 @@ async def back_to_menu(callback: CallbackQuery):
 
 @router.callback_query(F.data == "trusted_sellers")
 async def show_trusted_sellers(callback: CallbackQuery):
+    if await check_banned(callback, callback.from_user.id):
+        return
     if await check_maintenance(callback, callback.from_user.id):
         return
     
@@ -197,6 +221,8 @@ async def show_trusted_sellers(callback: CallbackQuery):
 
 @router.callback_query(F.data == "products")
 async def show_products(callback: CallbackQuery):
+    if await check_banned(callback, callback.from_user.id):
+        return
     if await check_maintenance(callback, callback.from_user.id):
         return
     
@@ -227,6 +253,8 @@ async def show_products(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("product:"))
 async def show_product_detail(callback: CallbackQuery):
+    if await check_banned(callback, callback.from_user.id):
+        return
     if await check_maintenance(callback, callback.from_user.id):
         return
     
@@ -295,6 +323,8 @@ async def show_product_detail(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("buy:"))
 async def initiate_purchase(callback: CallbackQuery):
+    if await check_banned(callback, callback.from_user.id):
+        return
     if await check_maintenance(callback, callback.from_user.id):
         return
     
@@ -328,7 +358,7 @@ async def initiate_purchase(callback: CallbackQuery):
             return
         
         if user.balance < price.price:
-            await callback.answer(f"❌ Insufficient balance! Need ${price.price}, have ${user.balance:.2f}", show_alert=True)
+            await callback.answer(f"❌ Insufficient balance! Need ${price.price:.2f}, have ${user.balance:.2f}", show_alert=True)
             return
         
         text = Templates.purchase_summary(
@@ -344,6 +374,8 @@ async def initiate_purchase(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("confirm_buy:"))
 async def confirm_purchase(callback: CallbackQuery):
+    if await check_banned(callback, callback.from_user.id):
+        return
     if await check_maintenance(callback, callback.from_user.id):
         return
     
@@ -446,6 +478,8 @@ async def confirm_purchase(callback: CallbackQuery):
 
 @router.callback_query(F.data == "my_orders")
 async def show_my_orders(callback: CallbackQuery):
+    if await check_banned(callback, callback.from_user.id):
+        return
     if await check_maintenance(callback, callback.from_user.id):
         return
     
@@ -479,6 +513,8 @@ async def show_my_orders(callback: CallbackQuery):
 
 @router.callback_query(F.data == "add_balance")
 async def show_add_balance(callback: CallbackQuery):
+    if await check_banned(callback, callback.from_user.id):
+        return
     if await check_maintenance(callback, callback.from_user.id):
         return
     
@@ -490,6 +526,8 @@ async def show_add_balance(callback: CallbackQuery):
 
 @router.callback_query(F.data == "upgrade_premium")
 async def show_upgrade_premium(callback: CallbackQuery):
+    if await check_banned(callback, callback.from_user.id):
+        return
     if await check_maintenance(callback, callback.from_user.id):
         return
     

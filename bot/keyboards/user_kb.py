@@ -113,25 +113,19 @@ def product_detail_keyboard(product_id: int, prices: list, is_premium: bool = Tr
             duration_stock = stock_per_duration.get(price['duration'], 0)
             
             price_value = price['price']
-            if isinstance(price_value, float):
-                if price_value == int(price_value):
-                    price_display = f"${int(price_value)}"
-                else:
-                    price_display = f"${price_value:.2f}"
-            else:
-                price_display = f"${price_value}"
+            price_display = f"${float(price_value):.2f}"
             
-            if in_stock:
+            if in_stock and duration_stock > 0:
                 builder.row(
                     InlineKeyboardButton(
-                        text=f"🛒 {readable} — {price_display} 【{duration_stock}】",
+                        text=f"🛒 {readable} -- {price_display} [{duration_stock} In Stock]",
                         callback_data=f"buy:{product_id}:{price['id']}"
                     )
                 )
             else:
                 builder.row(
                     InlineKeyboardButton(
-                        text=f"❌ {readable} — OUT OF STOCK 【0】",
+                        text=f"❌ {readable} -- Out of Stock",
                         callback_data="noop"
                     )
                 )

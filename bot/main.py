@@ -34,6 +34,9 @@ async def on_startup(bot: Bot):
     
     await init_db()
     
+    from bot.migrate_banned import migrate as migrate_banned
+    await migrate_banned()
+    
     await cache.connect()
     
     async with async_session() as session:

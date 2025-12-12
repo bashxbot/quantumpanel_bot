@@ -1,4 +1,6 @@
 import json
+import os
+import ssl
 from typing import Optional, Any
 import redis.asyncio as redis
 from loguru import logger
@@ -12,12 +14,32 @@ class CacheService:
         self._connected = False
     
     async def connect(self):
+        redis_url = config.redis.url
+        
+        if not redis_url or redis_url.strip() == "":
+            logger.info("📦 No Redis URL configured. Running without cache.")
+            self._connected = False
+            return
+        
         try:
-            self.redis = redis.from_url(
-                config.redis.url,
-                encoding="utf-8",
-                decode_responses=True
-            )
+            connection_kwargs = {
+                "encoding": "utf-8",
+                "decode_responses": True,
+            }
+            
+            if redis_url.startswith("rediss://"):
+                ssl_verify = os.getenv("REDIS_SSL_VERIFY", "false").lower() == "true"
+                
+                if ssl_verify:
+                    ssl_context = ssl.create_default_context()
+                else:
+                    ssl_context = ssl.create_default_context()
+                    ssl_context.check_hostname = False
+                    ssl_context.verify_mode = ssl.CERT_NONE
+                
+                connection_kwargs["ssl"] = ssl_context
+            
+            self.redis = redis.from_url(redis_url, **connection_kwargs)
             await self.redis.ping()
             self._connected = True
             logger.info("✅ Redis connected successfully")

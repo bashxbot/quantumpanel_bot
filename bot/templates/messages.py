@@ -56,19 +56,30 @@ class Templates:
 """
     
     @staticmethod
+    def get_country_flag(country: str) -> str:
+        """Get country flag emoji based on country name"""
+        country_lower = country.lower()
+        flags = {
+            "india": "🇮🇳", "spain": "🇪🇸", "pakistan": "🇵🇰",
+            "usa": "🇺🇸", "united states": "🇺🇸", "uk": "🇬🇧",
+            "united kingdom": "🇬🇧", "germany": "🇩🇪", "france": "🇫🇷",
+            "brazil": "🇧🇷", "russia": "🇷🇺", "indonesia": "🇮🇩",
+            "philippines": "🇵🇭", "bangladesh": "🇧🇩", "china": "🇨🇳",
+            "japan": "🇯🇵", "korea": "🇰🇷", "australia": "🇦🇺",
+            "canada": "🇨🇦", "mexico": "🇲🇽", "italy": "🇮🇹",
+            "turkey": "🇹🇷", "saudi": "🇸🇦", "uae": "🇦🇪",
+            "egypt": "🇪🇬", "nigeria": "🇳🇬", "south africa": "🇿🇦"
+        }
+        for key, flag in flags.items():
+            if key in country_lower:
+                return flag
+        return "🌍"
+    
+    @staticmethod
     def trusted_sellers(sellers: list) -> str:
         if not sellers:
-            return f"""
-{Templates.STAR_LINE}
-     🎉 <b>OUR OFFICIAL SELLERS!</b>
-{Templates.STAR_LINE}
-
-<i>No trusted sellers available at the moment.</i>
-
-{Templates.STAR_LINE}
-"""
+            return "🎉 <b>Official sellers of Team Quantum!</b>\n\n<i>No trusted sellers available at the moment.</i>"
         
-        # Group sellers by country
         sellers_by_country = {}
         for seller in sellers:
             country = seller.get("country") or "Other"
@@ -76,65 +87,35 @@ class Templates:
                 sellers_by_country[country] = []
             sellers_by_country[country].append(seller)
         
-        seller_text = ""
+        seller_text = "🎉 <b>Official sellers of Team Quantum!</b>\n"
+        
         for country, country_sellers in sellers_by_country.items():
-            # Add country flag based on common countries
-            country_display = country
-            if "india" in country.lower():
-                country_display = f"India 🇮🇳"
-            elif "spain" in country.lower():
-                country_display = f"Spain 🇪🇸"
-            elif "pakistan" in country.lower():
-                country_display = f"Pakistan 🇵🇰"
-            elif "usa" in country.lower() or "united states" in country.lower():
-                country_display = f"USA 🇺🇸"
-            elif "uk" in country.lower() or "united kingdom" in country.lower():
-                country_display = f"UK 🇬🇧"
-            elif "germany" in country.lower():
-                country_display = f"Germany 🇩🇪"
-            elif "france" in country.lower():
-                country_display = f"France 🇫🇷"
-            elif "brazil" in country.lower():
-                country_display = f"Brazil 🇧🇷"
-            elif "russia" in country.lower():
-                country_display = f"Russia 🇷🇺"
-            elif "indonesia" in country.lower():
-                country_display = f"Indonesia 🇮🇩"
-            elif "philippines" in country.lower():
-                country_display = f"Philippines 🇵🇭"
-            elif "bangladesh" in country.lower():
-                country_display = f"Bangladesh 🇧🇩"
-            
-            seller_text += f"\n<b>{country_display}</b>\n"
+            flag = Templates.get_country_flag(country)
+            seller_text += f"\n┌ <b>{country}</b> {flag}\n│\n"
             
             for i, seller in enumerate(country_sellers, 1):
                 name = seller.get("name") or seller.get("username", "Seller")
+                username = seller.get("username", "")
                 platforms = seller.get("platforms", "")
                 
-                seller_text += f"\n{i}. <b>{name}</b>\n"
-                seller_text += f"💬 <b>Contact:</b>\n"
+                seller_text += f"│ {i}. <i>{name}</i>\n"
                 
                 if platforms:
                     for line in platforms.split('\n'):
                         line = line.strip()
                         if line:
-                            seller_text += f"   {line}\n"
-                else:
-                    username = seller.get("username", "")
-                    if username:
-                        seller_text += f"   Telegram - @{username}\n"
+                            seller_text += f"│ 💬 Contact: {line}\n"
+                elif username:
+                    seller_text += f"│ 💬 Contact: @{username}\n"
                 
-                seller_text += "\n"
+                if i < len(country_sellers):
+                    seller_text += "│\n"
+            
+            seller_text += "└───────────────\n"
         
-        return f"""
-{Templates.STAR_LINE}
-     🎉 <b>OUR OFFICIAL SELLERS!</b>
-{Templates.STAR_LINE}
-{seller_text}
-{Templates.STAR_LINE}
-   <i>✅ Verified & Trusted Sellers</i>
-{Templates.STAR_LINE}
-"""
+        seller_text += "\n✅ <i>Click below to contact Admin!</i>"
+        
+        return seller_text
     
     @staticmethod
     def products_list_free() -> str:
@@ -561,6 +542,20 @@ Join our channel for updates 👇
 """
     
     @staticmethod
+    def user_banned(admin_username: str) -> str:
+        return f"""
+🚫 <b>Access Denied</b>
+
+Your account has been suspended from using this bot.
+
+If you believe this is a mistake, please contact our admin:
+
+👤 <b>Admin:</b> {admin_username}
+
+<i>We apologize for any inconvenience.</i>
+"""
+    
+    @staticmethod
     def purchase_report(
         user_name: str,
         user_id: int,
@@ -575,38 +570,14 @@ Join our channel for updates 👇
         readable_duration = Templates.get_readable_duration(duration)
         username_display = f"@{username}" if username else "N/A"
         
-        return f"""
-╔══════════════════════════════════════════╗
-║  🎉 <b>KEY PURCHASE SUCCESSFUL!</b> 🎉  ║
-╚══════════════════════════════════════════╝
+        return f"""🎉 <b>NEW PURCHASE</b>
 
-{Templates.STAR_LINE}
-         📋 <b>ORDER DETAILS</b>
-{Templates.STAR_LINE}
+👤 <b>{user_name}</b> ({username_display})
+🆔 <code>{user_id}</code>
 
-👤 <b>User Information</b>
-{Templates.DIVIDER_THIN}
-   📛 Name: <b>{user_name}</b>
-   🆔 ID: <code>{user_id}</code>
-   👤 Username: {username_display}
+📦 {product_name} | {readable_duration}
+💰 ${price:.2f}
+🔑 <code>{key_value}</code>
 
-📦 <b>Product Details</b>
-{Templates.DIVIDER_THIN}
-   🛍 Product: <b>{product_name}</b>
-   ⏱ Duration: <b>{readable_duration}</b>
-   💰 Price: <code>${price:.2f}</code>
-
-🔑 <b>Key Delivered</b>
-{Templates.DIVIDER_THIN}
-   <code>{key_value}</code>
-
-💳 <b>Balance After Purchase</b>
-{Templates.DIVIDER_THIN}
-   Remaining: <code>${new_balance:.2f}</code>
-
-⏰ <b>Time:</b> {order_time}
-
-{Templates.STAR_LINE}
-    ✨ <b>Quantum Panel</b> ✨
-{Templates.STAR_LINE}
-"""
+💳 Balance: ${new_balance:.2f}
+⏰ {order_time}"""
