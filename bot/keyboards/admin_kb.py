@@ -153,7 +153,36 @@ def product_keys_keyboard(product_id: int) -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="📋 View Keys", callback_data=f"admin:keys:view:{product_id}")
     )
     builder.row(
+        InlineKeyboardButton(text="🗑️ Delete Keys", callback_data=f"admin:keys:delete:{product_id}")
+    )
+    builder.row(
         InlineKeyboardButton(text="◀️ Back to Keys", callback_data="admin:keys")
+    )
+    return builder.as_markup()
+
+
+def delete_keys_keyboard(product_id: int) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="🗑️ Delete All Keys", callback_data=f"admin:keys:delete_all:{product_id}")
+    )
+    builder.row(
+        InlineKeyboardButton(text="❌ Delete Claimed Keys", callback_data=f"admin:keys:delete_claimed:{product_id}")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🕐 Delete Last Generated", callback_data=f"admin:keys:delete_last:{product_id}")
+    )
+    builder.row(
+        InlineKeyboardButton(text="◀️ Back", callback_data=f"admin:keys:{product_id}")
+    )
+    return builder.as_markup()
+
+
+def confirm_delete_keys_keyboard(action: str, product_id: int) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="✅ Yes, Delete", callback_data=f"admin:keys:confirm_{action}:{product_id}"),
+        InlineKeyboardButton(text="❌ Cancel", callback_data=f"admin:keys:{product_id}")
     )
     return builder.as_markup()
 

@@ -13,7 +13,7 @@ class Product(Base, TimestampMixin):
     is_active = Column(Boolean, default=True, nullable=False)
     
     prices = relationship("ProductPrice", back_populates="product", lazy="selectin", cascade="all, delete-orphan")
-    keys = relationship("ProductKey", back_populates="product", lazy="selectin")
+    keys = relationship("ProductKey", back_populates="product", lazy="selectin", cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="product", lazy="selectin")
     
     def __repr__(self):

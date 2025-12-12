@@ -91,14 +91,14 @@ class Templates:
         
         for country, country_sellers in sellers_by_country.items():
             flag = Templates.get_country_flag(country)
-            seller_text += f"\n┌ <b>{country}</b> {flag}\n│\n"
+            seller_text += f"\n┌ <b>{country}</b> {flag}\n"
             
             for i, seller in enumerate(country_sellers, 1):
                 name = seller.get("name") or seller.get("username", "Seller")
                 username = seller.get("username", "")
                 platforms = seller.get("platforms", "")
                 
-                seller_text += f"│ {i}. <i>{name}</i>\n"
+                seller_text += f"│\n│ {i}. <i>{name}</i>\n"
                 
                 if platforms:
                     for line in platforms.split('\n'):
@@ -107,9 +107,6 @@ class Templates:
                             seller_text += f"│ 💬 Contact: {line}\n"
                 elif username:
                     seller_text += f"│ 💬 Contact: @{username}\n"
-                
-                if i < len(country_sellers):
-                    seller_text += "│\n"
             
             seller_text += "└───────────────\n"
         

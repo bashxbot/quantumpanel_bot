@@ -65,6 +65,24 @@ class AdminService:
             return True
         return False
     
+    async def remove_admin_by_id(self, admin_id: int) -> bool:
+        stmt = select(Admin).where(Admin.id == admin_id)
+        result = await self.session.execute(stmt)
+        admin = result.scalar_one_or_none()
+        
+        if not admin:
+            return False
+        
+        if admin.telegram_id == config.bot.root_admin_id:
+            logger.warning(f"⚠️ Cannot remove root admin")
+            return False
+        
+        await self.session.delete(admin)
+        await self.session.commit()
+        await cache.delete(f"is_admin:{admin.telegram_id}")
+        logger.info(f"🗑️ Admin removed by ID: {admin_id}")
+        return True
+    
     async def get_admin(self, telegram_id: int) -> Optional[Admin]:
         stmt = select(Admin).where(Admin.telegram_id == telegram_id)
         result = await self.session.execute(stmt)

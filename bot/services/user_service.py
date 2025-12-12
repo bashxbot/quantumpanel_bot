@@ -157,3 +157,29 @@ class UserService:
         stmt = select(User).where(User.status == UserStatus.PREMIUM).order_by(User.created_at.desc())
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
+    
+    async def remove_premium_by_id(self, user_id: int) -> bool:
+        stmt = select(User).where(User.id == user_id)
+        result = await self.session.execute(stmt)
+        user = result.scalar_one_or_none()
+        
+        if user:
+            user.status = UserStatus.FREE
+            await self.session.commit()
+            await cache.delete(f"user:{user.telegram_id}")
+            logger.info(f"⭐ Premium removed from user {user_id}")
+            return True
+        return False
+    
+    async def set_premium_by_telegram_id(self, telegram_id: int, is_premium: bool = True) -> bool:
+        stmt = select(User).where(User.telegram_id == telegram_id)
+        result = await self.session.execute(stmt)
+        user = result.scalar_one_or_none()
+        
+        if user:
+            user.status = UserStatus.PREMIUM if is_premium else UserStatus.FREE
+            await self.session.commit()
+            await cache.delete(f"user:{user.telegram_id}")
+            logger.info(f"⭐ User {telegram_id} premium status: {is_premium}")
+            return True
+        return False

@@ -20,6 +20,8 @@ from bot.keyboards.admin_kb import (
     product_manage_keyboard,
     keys_manage_keyboard,
     product_keys_keyboard,
+    delete_keys_keyboard,
+    confirm_delete_keys_keyboard,
     admins_keyboard,
     admin_manage_keyboard,
     sellers_manage_keyboard,
@@ -685,6 +687,198 @@ async def add_keys(message: Message, state: FSMContext):
         )
 
 
+@router.callback_query(F.data.startswith("admin:keys:delete:"))
+async def show_delete_keys_options(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    parts = callback.data.split(":")
+    product_id = int(parts[3])
+    
+    async with async_session() as session:
+        product_service = ProductService(session)
+        product = await product_service.get_product(product_id)
+        keys_data = await product_service.get_keys_count(product_id)
+        
+        text = f"""
+{Templates.DIVIDER}
+🗑️ <b>DELETE KEYS - {product.name}</b>
+{Templates.DIVIDER}
+
+📊 <b>Current Stats:</b>
+   • Total Keys: {keys_data['total']}
+   • Available: {keys_data['available']}
+   • Used/Claimed: {keys_data['used']}
+
+Select delete option:
+"""
+        
+        await callback.message.edit_text(
+            text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=delete_keys_keyboard(product_id)
+        )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:keys:delete_all:"))
+async def confirm_delete_all_keys(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    parts = callback.data.split(":")
+    product_id = int(parts[3])
+    
+    async with async_session() as session:
+        product_service = ProductService(session)
+        keys_data = await product_service.get_keys_count(product_id)
+        
+        text = f"""
+⚠️ <b>CONFIRM DELETE ALL KEYS</b>
+
+Are you sure you want to delete ALL keys?
+
+This will delete <b>{keys_data['total']}</b> keys.
+
+⚠️ <i>This action cannot be undone!</i>
+"""
+        
+        await callback.message.edit_text(
+            text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=confirm_delete_keys_keyboard("all", product_id)
+        )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:keys:delete_claimed:"))
+async def confirm_delete_claimed_keys(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    parts = callback.data.split(":")
+    product_id = int(parts[3])
+    
+    async with async_session() as session:
+        product_service = ProductService(session)
+        keys_data = await product_service.get_keys_count(product_id)
+        
+        text = f"""
+⚠️ <b>CONFIRM DELETE CLAIMED KEYS</b>
+
+Are you sure you want to delete all CLAIMED keys?
+
+This will delete <b>{keys_data['used']}</b> keys.
+
+⚠️ <i>This action cannot be undone!</i>
+"""
+        
+        await callback.message.edit_text(
+            text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=confirm_delete_keys_keyboard("claimed", product_id)
+        )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:keys:delete_last:"))
+async def confirm_delete_last_keys(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    parts = callback.data.split(":")
+    product_id = int(parts[3])
+    
+    text = f"""
+⚠️ <b>CONFIRM DELETE LAST GENERATED KEYS</b>
+
+Are you sure you want to delete the LAST GENERATED batch of keys?
+
+This will delete keys that were added in the most recent bulk addition.
+
+⚠️ <i>This action cannot be undone!</i>
+"""
+    
+    await callback.message.edit_text(
+        text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=confirm_delete_keys_keyboard("last", product_id)
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:keys:confirm_all:"))
+async def execute_delete_all_keys(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    parts = callback.data.split(":")
+    product_id = int(parts[3])
+    
+    async with async_session() as session:
+        product_service = ProductService(session)
+        deleted_count = await product_service.delete_all_keys(product_id)
+        
+        await callback.message.edit_text(
+            Templates.success(f"Deleted <b>{deleted_count}</b> keys successfully!"),
+            parse_mode=ParseMode.HTML,
+            reply_markup=back_to_admin_keyboard()
+        )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:keys:confirm_claimed:"))
+async def execute_delete_claimed_keys(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    parts = callback.data.split(":")
+    product_id = int(parts[3])
+    
+    async with async_session() as session:
+        product_service = ProductService(session)
+        deleted_count = await product_service.delete_claimed_keys(product_id)
+        
+        await callback.message.edit_text(
+            Templates.success(f"Deleted <b>{deleted_count}</b> claimed keys successfully!"),
+            parse_mode=ParseMode.HTML,
+            reply_markup=back_to_admin_keyboard()
+        )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:keys:confirm_last:"))
+async def execute_delete_last_keys(callback: CallbackQuery):
+    if not await is_admin_check(callback.from_user.id):
+        await callback.answer("⚠️ Access denied!", show_alert=True)
+        return
+    
+    parts = callback.data.split(":")
+    product_id = int(parts[3])
+    
+    async with async_session() as session:
+        product_service = ProductService(session)
+        deleted_count = await product_service.delete_last_generated_keys(product_id)
+        
+        if deleted_count > 0:
+            await callback.message.edit_text(
+                Templates.success(f"Deleted <b>{deleted_count}</b> last generated keys successfully!"),
+                parse_mode=ParseMode.HTML,
+                reply_markup=back_to_admin_keyboard()
+            )
+        else:
+            await callback.message.edit_text(
+                Templates.error("No keys found to delete!"),
+                parse_mode=ParseMode.HTML,
+                reply_markup=back_to_admin_keyboard()
+            )
+    await callback.answer()
 
 
 

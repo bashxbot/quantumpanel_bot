@@ -76,15 +76,15 @@ class ProductService:
         return product
     
     async def delete_product(self, product_id: int) -> bool:
-        stmt = delete(Product).where(Product.id == product_id)
-        result = await self.session.execute(stmt)
+        product = await self.get_product(product_id)
+        if not product:
+            return False
+        
+        await self.session.delete(product)
         await self.session.commit()
         await cache.invalidate_pattern("products:*")
-        
-        if result.rowcount > 0:
-            logger.info(f"🗑️ Product deleted: {product_id}")
-            return True
-        return False
+        logger.info(f"🗑️ Product deleted with all keys: {product_id}")
+        return True
     
     async def add_price(self, product_id: int, duration: str, price: float) -> ProductPrice:
         existing = await self.get_price(product_id, duration)
@@ -179,6 +179,43 @@ class ProductService:
             stmt = stmt.where(ProductKey.is_used == False)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
+    
+    async def delete_all_keys(self, product_id: int) -> int:
+        stmt = delete(ProductKey).where(ProductKey.product_id == product_id)
+        result = await self.session.execute(stmt)
+        await self.session.commit()
+        logger.info(f"🗑️ Deleted all keys for product {product_id}: {result.rowcount} keys")
+        return result.rowcount
+    
+    async def delete_claimed_keys(self, product_id: int) -> int:
+        stmt = delete(ProductKey).where(
+            ProductKey.product_id == product_id,
+            ProductKey.is_used == True
+        )
+        result = await self.session.execute(stmt)
+        await self.session.commit()
+        logger.info(f"🗑️ Deleted claimed keys for product {product_id}: {result.rowcount} keys")
+        return result.rowcount
+    
+    async def delete_last_generated_keys(self, product_id: int) -> int:
+        stmt = select(ProductKey).where(ProductKey.product_id == product_id).order_by(ProductKey.created_at.desc())
+        result = await self.session.execute(stmt)
+        keys = list(result.scalars().all())
+        
+        if not keys:
+            return 0
+        
+        last_batch_time = keys[0].created_at
+        batch_keys = [k for k in keys if k.created_at == last_batch_time]
+        
+        if batch_keys:
+            key_ids = [k.id for k in batch_keys]
+            delete_stmt = delete(ProductKey).where(ProductKey.id.in_(key_ids))
+            result = await self.session.execute(delete_stmt)
+            await self.session.commit()
+            logger.info(f"🗑️ Deleted last generated keys for product {product_id}: {result.rowcount} keys")
+            return result.rowcount
+        return 0
     
     async def get_product_stock(self, product_id: int) -> int:
         keys_data = await self.get_keys_count(product_id)
