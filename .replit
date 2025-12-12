@@ -17,7 +17,7 @@ localPort = 5000
 externalPort = 80
 
 [workflows]
-runButton = "Run"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Run"
@@ -41,12 +41,13 @@ args = "Telegram Bot"
 name = "Telegram Bot"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python -m bot.main"
-
-[workflows.workflow.metadata]
-outputType = "console"
+args = "cd client && npm run build && cd .. && python web_server.py"
+waitForPort = 5000
 
 [agent]
 expertMode = true
