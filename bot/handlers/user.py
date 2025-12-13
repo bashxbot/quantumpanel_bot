@@ -240,14 +240,43 @@ async def show_products(callback: CallbackQuery):
                 "id": p.id,
                 "name": p.name,
                 "description": p.description,
-                "prices": [{"id": pr.id, "duration": pr.duration, "price": pr.price} for pr in p.prices]
+                "prices": [{"id": pr.id, "duration": pr.duration, "price": float(pr.price)} for pr in p.prices]
             }
             for p in products
         ]
         
         text = Templates.products_list(products_data, is_premium=is_premium)
+        keyboard = products_keyboard(products_data, is_premium=is_premium)
         
-        await edit_message(callback, text, products_keyboard(products_data, is_premium=is_premium))
+        if callback.message.content_type == ContentType.PHOTO:
+            chat_id = callback.message.chat.id
+            try:
+                await callback.message.delete()
+            except Exception:
+                pass
+            
+            if os.path.exists(BANNER_PATH):
+                photo = FSInputFile(BANNER_PATH)
+                await callback.bot.send_photo(
+                    chat_id=chat_id,
+                    photo=photo,
+                    caption=text,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+            else:
+                await callback.bot.send_message(
+                    chat_id=chat_id,
+                    text=text,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+        else:
+            await callback.message.edit_text(
+                text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=keyboard
+            )
     await callback.answer()
 
 
@@ -281,7 +310,7 @@ async def show_product_detail(callback: CallbackQuery):
             prices_with_stock.append({
                 "id": pr.id, 
                 "duration": pr.duration, 
-                "price": pr.price,
+                "price": float(pr.price),
                 "in_stock": duration_stock > 0
             })
             total_stock += duration_stock
@@ -357,15 +386,18 @@ async def initiate_purchase(callback: CallbackQuery):
             await callback.answer("❌ Out of stock! Please try again later.", show_alert=True)
             return
         
-        if user.balance < price.price:
-            await callback.answer(f"❌ Insufficient balance! Need ${price.price:.2f}, have ${user.balance:.2f}", show_alert=True)
+        price_value = float(price.price)
+        balance_value = float(user.balance)
+        
+        if balance_value < price_value:
+            await callback.answer(f"❌ Insufficient balance! Need ${price_value:.2f}, have ${balance_value:.2f}", show_alert=True)
             return
         
         text = Templates.purchase_summary(
             product_name=product.name,
             duration=price.duration,
-            price=price.price,
-            current_balance=user.balance
+            price=price_value,
+            current_balance=balance_value
         )
         
         await edit_message(callback, text, confirm_purchase_keyboard(product_id, price_id))
@@ -403,7 +435,10 @@ async def confirm_purchase(callback: CallbackQuery):
             await callback.answer("❌ Price option not found!", show_alert=True)
             return
         
-        if user.balance < price.price:
+        price_value = float(price.price)
+        balance_value = float(user.balance)
+        
+        if balance_value < price_value:
             await callback.answer("❌ Insufficient balance!", show_alert=True)
             return
         
@@ -420,17 +455,17 @@ async def confirm_purchase(callback: CallbackQuery):
             product_id=product_id,
             product_name=product.name,
             duration=price.duration,
-            price=price.price,
+            price=price_value,
             key_value=key_value
         )
         
-        await user_service.update_balance(user.id, -price.price)
-        new_balance = user.balance - price.price
+        await user_service.update_balance(user.id, -price_value)
+        new_balance = balance_value - price_value
         
         success_msg = Templates.purchase_success(
             product_name=product.name,
             duration=price.duration,
-            price=price.price,
+            price=price_value,
             key_value=key_value,
             admin_contact=config.bot.admin_username
         )
@@ -458,7 +493,7 @@ async def confirm_purchase(callback: CallbackQuery):
                         username=user.username or "",
                         product_name=product.name,
                         duration=price.duration,
-                        price=price.price,
+                        price=price_value,
                         key_value=key_value,
                         new_balance=new_balance,
                         order_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")

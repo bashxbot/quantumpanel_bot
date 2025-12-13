@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, BigInteger, String, Boolean, Float, DateTime, Enum as SQLEnum
+from sqlalchemy import Column, Integer, BigInteger, String, Boolean, Numeric, DateTime, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -19,7 +19,7 @@ class User(Base, TimestampMixin):
     username = Column(String(255), nullable=True)
     first_name = Column(String(255), nullable=True)
     last_name = Column(String(255), nullable=True)
-    balance = Column(Float, default=0.0, nullable=False)
+    balance = Column(Numeric(10, 2), default=0.0, nullable=False)
     status = Column(SQLEnum(UserStatus), default=UserStatus.FREE, nullable=False)
     is_reseller = Column(Boolean, default=False, nullable=False)
     is_banned = Column(Boolean, default=False, nullable=False)

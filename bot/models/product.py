@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, Numeric
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
+from decimal import Decimal
 
 
 class Product(Base, TimestampMixin):
@@ -26,7 +27,7 @@ class ProductPrice(Base, TimestampMixin):
     id = Column(Integer, primary_key=True, autoincrement=True)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     duration = Column(String(100), nullable=False)
-    price = Column(Float, nullable=False)
+    price = Column(Numeric(10, 2), nullable=False)
     
     product = relationship("Product", back_populates="prices")
     
