@@ -359,14 +359,15 @@ async def manage_single_product(callback: CallbackQuery, state: FSMContext):
         await callback.message.edit_text(
             Templates.info(
                 "<b>📋 Send pricing in this format:</b>\n\n"
-                "<code>&lt;duration&gt; &lt;credits&gt;</code>\n\n"
+                "<code>&lt;duration&gt; &lt;price&gt;</code>\n\n"
                 "<b>Examples:</b>\n"
-                "<code>1d 1</code> → 1 Day for $1\n"
-                "<code>7d 5</code> → 7 Days for $5\n"
+                "<code>1d 0.50</code> → 1 Day for $0.50\n"
+                "<code>3d 0.75</code> → 3 Days for $0.75\n"
+                "<code>7d 1.50</code> → 7 Days for $1.50\n"
                 "<code>1m 10</code> → 1 Month for $10\n"
-                "<code>3m 25</code> → 3 Months for $25\n\n"
-                "<i>Send multiple lines to add multiple prices:</i>\n"
-                "<code>1d 1\n3d 2\n7d 5\n30d 10</code>"
+                "<code>3m 25.99</code> → 3 Months for $25.99\n\n"
+                "<i>Decimal prices are supported! Send multiple lines:</i>\n"
+                "<code>1d 0.50\n3d 0.75\n7d 1.00\n30d 3.00</code>"
             ),
             parse_mode=ParseMode.HTML
         )
@@ -498,7 +499,7 @@ async def add_price_duration(message: Message, state: FSMContext):
         )
     else:
         await message.answer(
-            Templates.error("No valid prices found!\n\n<b>Format:</b> <code>&lt;duration&gt; &lt;credits&gt;</code>\n\n<b>Examples:</b>\n<code>1d 1</code>\n<code>7d 5</code>\n<code>1m 10</code>\n<code>3m 25</code>"),
+            Templates.error("No valid prices found!\n\n<b>Format:</b> <code>&lt;duration&gt; &lt;price&gt;</code>\n\n<b>Examples:</b>\n<code>1d 0.50</code>\n<code>3d 0.75</code>\n<code>7d 1.50</code>\n<code>1m 10</code>"),
             parse_mode=ParseMode.HTML,
             reply_markup=back_to_admin_keyboard()
         )
@@ -532,7 +533,9 @@ Select a product to manage keys:
     await callback.answer()
 
 
-@router.callback_query(F.data.startswith("admin:keys:"))
+@router.callback_query(F.data.startswith("admin:keys:") & 
+                       ~F.data.startswith("admin:keys:delete") & 
+                       ~F.data.startswith("admin:keys:confirm"))
 async def manage_product_keys(callback: CallbackQuery, state: FSMContext):
     if not await is_admin_check(callback.from_user.id):
         await callback.answer("⚠️ Access denied!", show_alert=True)

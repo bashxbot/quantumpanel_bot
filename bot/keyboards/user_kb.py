@@ -30,13 +30,20 @@ def back_to_menu_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def trusted_sellers_keyboard(admin_username: str) -> InlineKeyboardMarkup:
+def trusted_sellers_keyboard(manager_username: str, admin_username: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    clean_username = admin_username.replace("@", "")
+    clean_manager = manager_username.replace("@", "")
+    clean_admin = admin_username.replace("@", "")
     builder.row(
         InlineKeyboardButton(
-            text="✅ Contact Admin!",
-            url=f"https://t.me/{clean_username}"
+            text="👤 Contact Manager",
+            url=f"https://t.me/{clean_manager}"
+        )
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text="👤 Contact Admin",
+            url=f"https://t.me/{clean_admin}"
         )
     )
     builder.row(

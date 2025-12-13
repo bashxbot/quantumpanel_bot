@@ -214,7 +214,7 @@ async def show_trusted_sellers(callback: CallbackQuery):
             chat_id=chat_id,
             text=text,
             parse_mode=ParseMode.HTML,
-            reply_markup=trusted_sellers_keyboard(config.bot.admin_username)
+            reply_markup=trusted_sellers_keyboard(config.bot.manager_username, config.bot.admin_username)
         )
     await callback.answer()
 
@@ -518,7 +518,7 @@ async def show_add_balance(callback: CallbackQuery):
     if await check_maintenance(callback, callback.from_user.id):
         return
     
-    text = Templates.add_balance(config.bot.admin_username)
+    text = Templates.add_balance(config.bot.manager_username, config.bot.admin_username)
     
     await edit_message(callback, text, back_to_menu_keyboard())
     await callback.answer()

@@ -110,7 +110,7 @@ class Templates:
             
             seller_text += "└───────────────\n"
         
-        seller_text += "\n✅ <i>Click below to contact Admin!</i>"
+        seller_text += "\n✅ <i>Click below to contact Manager or Admin!</i>"
         
         return seller_text
     
@@ -200,15 +200,16 @@ product prices and make purchases.</i>
 """
     
     @staticmethod
-    def add_balance(admin_username: str) -> str:
+    def add_balance(manager_username: str, admin_username: str) -> str:
         return f"""
 {Templates.STAR_LINE}
      💳 <b>ADD BALANCE</b>
 {Templates.STAR_LINE}
 
 To add balance to your account, please 
-contact our admin:
+contact our manager or admin:
 
+👤 <b>Manager:</b> {manager_username}
 👤 <b>Admin:</b> {admin_username}
 
 <i>Send the amount you wish to add and 

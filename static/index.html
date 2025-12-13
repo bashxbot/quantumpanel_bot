@@ -1,152 +1,58 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantum Panel Bot</title>
+    <title>Quantum Panel - Admin</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0a0f1c 0%, #1a1f3c 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #333;
+            color: white;
         }
-        
         .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 600px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             text-align: center;
+            padding: 40px;
         }
-        
-        .logo {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: #667eea;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
-        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
         h1 {
-            color: #667eea;
+            font-size: 1.5em;
             margin-bottom: 10px;
-            font-size: 2.5em;
         }
-        
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-        }
-        
-        .status {
-            display: inline-block;
-            background: #10b981;
-            color: white;
-            padding: 8px 20px;
-            border-radius: 20px;
-            margin-bottom: 30px;
-            font-weight: bold;
-        }
-        
-        .features {
-            text-align: left;
-            margin: 30px 0;
-        }
-        
-        .feature {
-            padding: 15px;
-            margin: 10px 0;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .feature-title {
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-        
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 40px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 1.1em;
-            margin-top: 20px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        .footer {
-            margin-top: 30px;
-            color: #999;
-            font-size: 0.9em;
+        p {
+            color: rgba(255,255,255,0.7);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">🤖</div>
-        <h1>Quantum Panel Bot</h1>
-        <p class="subtitle">Your Premium Telegram Bot Service</p>
-        
-        <div class="status">✅ Bot is Running</div>
-        
-        <div class="features">
-            <div class="feature">
-                <div class="feature-title">📦 Product Management</div>
-                <div>Browse and purchase premium products with flexible pricing options</div>
-            </div>
-            
-            <div class="feature">
-                <div class="feature-title">💎 Premium Access</div>
-                <div>Unlock exclusive features and products with premium membership</div>
-            </div>
-            
-            <div class="feature">
-                <div class="feature-title">🔐 Secure Transactions</div>
-                <div>Safe and reliable key delivery system for all purchases</div>
-            </div>
-            
-            <div class="feature">
-                <div class="feature-title">👥 Reseller Program</div>
-                <div>Join our trusted seller network and earn commissions</div>
-            </div>
-        </div>
-        
-        <a href="https://t.me/QuantumPannel_bot" class="cta-button" target="_blank">
-            Start Using Bot
-        </a>
-        
-        <div class="footer">
-            Powered by Quantum Panel • Running on Replit
-        </div>
+        <div class="loader"></div>
+        <h1>Loading Admin Panel...</h1>
+        <p>Please wait while the application loads.</p>
+        <p style="margin-top: 20px; font-size: 0.9em; color: rgba(255,255,255,0.5);">
+            If this takes too long, the React app may need to be built.<br>
+            Run: <code>cd client && npm run build</code>
+        </p>
     </div>
 </body>
 </html>
