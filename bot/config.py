@@ -29,8 +29,8 @@ class DatabaseConfig:
 
 @dataclass
 class RedisConfig:
-    rest_url: str = os.getenv("UPSTASH_REDIS_REST_URL", "")
-    rest_token: str = os.getenv("UPSTASH_REDIS_REST_TOKEN", "")
+    rest_url: str = os.getenv("UPSTASH_REDIS_REST_URL", "") or os.getenv("REDIS_REST_URL", "")
+    rest_token: str = os.getenv("UPSTASH_REDIS_REST_TOKEN", "") or os.getenv("REDIS_REST_TOKEN", "")
 
 
 @dataclass

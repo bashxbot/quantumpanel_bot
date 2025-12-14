@@ -300,7 +300,7 @@ async def manage_single_product(callback: CallbackQuery, state: FSMContext):
                 product_data = {
                     "name": product.name,
                     "description": product.description,
-                    "prices": [{"duration": p.duration, "price": p.price} for p in product.prices]
+                    "prices": [{"duration": p.duration, "price": float(p.price) if p.price is not None else 0.0} for p in product.prices]
                 }
                 text = Templates.product_detail(product_data)
                 
@@ -319,9 +319,30 @@ async def manage_single_product(callback: CallbackQuery, state: FSMContext):
         async with async_session() as session:
             product_service = ProductService(session)
             await product_service.delete_product(product_id)
+            
+            products = await product_service.get_all_products(active_only=False)
+            products_data = [
+                {"id": p.id, "name": p.name, "is_active": p.is_active}
+                for p in products
+            ]
+            
+            text = f"""
+{Templates.DIVIDER}
+🛠 <b>MANAGE PRODUCTS</b>
+{Templates.DIVIDER}
+
+Total products: {len(products)}
+
+Select a product to manage:
+"""
+            
+            await callback.message.edit_text(
+                text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=products_manage_keyboard(products_data)
+            )
             await callback.answer("🗑 Product deleted!")
-            callback.data = "admin:products"
-            return await manage_products(callback)
+            return
     
     elif action == "edit_name" and product_id:
         await state.set_state(AdminStates.waiting_product_name)
@@ -383,7 +404,7 @@ async def manage_single_product(callback: CallbackQuery, state: FSMContext):
                 product_data = {
                     "name": product.name,
                     "description": product.description,
-                    "prices": [{"duration": p.duration, "price": p.price} for p in product.prices]
+                    "prices": [{"duration": p.duration, "price": float(p.price) if p.price is not None else 0.0} for p in product.prices]
                 }
                 text = Templates.product_detail(product_data)
                 

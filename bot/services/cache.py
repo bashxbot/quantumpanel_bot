@@ -14,8 +14,8 @@ class CacheService:
         self._rest_token = None
     
     async def connect(self):
-        self._rest_url = os.getenv("UPSTASH_REDIS_REST_URL", "").strip()
-        self._rest_token = os.getenv("UPSTASH_REDIS_REST_TOKEN", "").strip()
+        self._rest_url = os.getenv("UPSTASH_REDIS_REST_URL", "").strip() or os.getenv("REDIS_REST_URL", "").strip()
+        self._rest_token = os.getenv("UPSTASH_REDIS_REST_TOKEN", "").strip() or os.getenv("REDIS_REST_TOKEN", "").strip()
         
         if not self._rest_url or not self._rest_token:
             logger.info("📦 No Redis REST credentials configured. Running without cache.")
