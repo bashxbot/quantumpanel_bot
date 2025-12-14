@@ -1,6 +1,6 @@
 """
 Migration script to change product_prices.price and users.balance columns from INTEGER to NUMERIC
-Run this script once to migrate existing databases.
+This migration runs automatically on bot startup.
 
 Usage: python -m bot.migrate_prices
 """
@@ -8,11 +8,12 @@ import asyncio
 import os
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
+from loguru import logger
 
 async def migrate():
     database_url = os.getenv("DATABASE_URL", "")
     if not database_url:
-        print("❌ DATABASE_URL not set")
+        logger.warning("⚠️ DATABASE_URL not set, skipping price migration")
         return
     
     # Convert to async URL
@@ -41,16 +42,16 @@ async def migrate():
         if row:
             current_type = row[0].lower()
             if 'int' in current_type:
-                print(f"📊 product_prices.price: {current_type}, migrating to NUMERIC(10,2)...")
+                logger.info(f"📊 product_prices.price: {current_type}, migrating to NUMERIC(10,2)...")
                 await conn.execute(text("""
                     ALTER TABLE product_prices 
                     ALTER COLUMN price TYPE NUMERIC(10,2) USING price::numeric(10,2)
                 """))
-                print("✅ product_prices.price now supports decimals.")
+                logger.info("✅ product_prices.price now supports decimals.")
             else:
-                print(f"✅ product_prices.price already supports decimals (type: {current_type})")
+                logger.debug(f"✅ product_prices.price already supports decimals (type: {current_type})")
         else:
-            print("⚠️ Table 'product_prices' not found. Will be created on next bot start.")
+            logger.debug("⚠️ Table 'product_prices' not found. Will be created on next bot start.")
         
         # Migrate users.balance column
         result = await conn.execute(text("""
@@ -62,19 +63,19 @@ async def migrate():
         if row:
             current_type = row[0].lower()
             if 'int' in current_type:
-                print(f"📊 users.balance: {current_type}, migrating to NUMERIC(10,2)...")
+                logger.info(f"📊 users.balance: {current_type}, migrating to NUMERIC(10,2)...")
                 await conn.execute(text("""
                     ALTER TABLE users 
                     ALTER COLUMN balance TYPE NUMERIC(10,2) USING balance::numeric(10,2)
                 """))
-                print("✅ users.balance now supports decimals.")
+                logger.info("✅ users.balance now supports decimals.")
             else:
-                print(f"✅ users.balance already supports decimals (type: {current_type})")
+                logger.debug(f"✅ users.balance already supports decimals (type: {current_type})")
         else:
-            print("⚠️ Table 'users' not found. Will be created on next bot start.")
+            logger.debug("⚠️ Table 'users' not found. Will be created on next bot start.")
     
     await engine.dispose()
-    print("\n✅ Migration complete!")
+    logger.info("✅ Price/balance migration check complete!")
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
