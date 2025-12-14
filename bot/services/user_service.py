@@ -56,7 +56,7 @@ class UserService:
             "username": user.username,
             "first_name": user.first_name,
             "last_name": user.last_name,
-            "balance": user.balance,
+            "balance": float(user.balance) if user.balance is not None else 0.0,
             "status": user.status.value,
             "is_reseller": user.is_reseller,
             "is_banned": getattr(user, 'is_banned', False),

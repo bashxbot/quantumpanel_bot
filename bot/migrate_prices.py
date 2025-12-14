@@ -41,15 +41,17 @@ async def migrate():
         
         if row:
             current_type = row[0].lower()
-            if 'int' in current_type:
+            if 'int' in current_type or 'double' in current_type or 'float' in current_type or 'real' in current_type:
                 logger.info(f"📊 product_prices.price: {current_type}, migrating to NUMERIC(10,2)...")
                 await conn.execute(text("""
                     ALTER TABLE product_prices 
                     ALTER COLUMN price TYPE NUMERIC(10,2) USING price::numeric(10,2)
                 """))
                 logger.info("✅ product_prices.price now supports decimals.")
-            else:
+            elif 'numeric' in current_type:
                 logger.debug(f"✅ product_prices.price already supports decimals (type: {current_type})")
+            else:
+                logger.debug(f"✅ product_prices.price type: {current_type}")
         else:
             logger.debug("⚠️ Table 'product_prices' not found. Will be created on next bot start.")
         
@@ -62,15 +64,20 @@ async def migrate():
         
         if row:
             current_type = row[0].lower()
-            if 'int' in current_type:
+            if 'int' in current_type or 'double' in current_type or 'float' in current_type or 'real' in current_type:
                 logger.info(f"📊 users.balance: {current_type}, migrating to NUMERIC(10,2)...")
+                await conn.execute(text("""
+                    UPDATE users SET balance = 99999999.99 WHERE balance > 99999999.99
+                """))
                 await conn.execute(text("""
                     ALTER TABLE users 
                     ALTER COLUMN balance TYPE NUMERIC(10,2) USING balance::numeric(10,2)
                 """))
                 logger.info("✅ users.balance now supports decimals.")
-            else:
+            elif 'numeric' in current_type:
                 logger.debug(f"✅ users.balance already supports decimals (type: {current_type})")
+            else:
+                logger.debug(f"✅ users.balance type: {current_type}")
         else:
             logger.debug("⚠️ Table 'users' not found. Will be created on next bot start.")
     

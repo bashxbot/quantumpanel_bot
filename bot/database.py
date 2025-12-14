@@ -10,6 +10,9 @@ engine = create_async_engine(
     config.db.async_url,
     poolclass=NullPool,
     echo=False,
+    connect_args={
+        "statement_cache_size": 0,
+    },
 )
 
 async_session = async_sessionmaker(
