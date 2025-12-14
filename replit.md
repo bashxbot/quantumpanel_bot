@@ -133,12 +133,16 @@ Required variables in `.env`:
 
 6. **Image Navigation Fix**: When returning from product view to main menu, the banner image is properly restored instead of staying on product image.
 
+7. **Render Deployment**: Added `render.yaml` for easy deployment on Render.
+
+8. **Flexible Redis Configuration**: Now supports both `REDIS_REST_*` and `UPSTASH_REDIS_REST_*` environment variable naming.
+
 ### Migration Note:
-If upgrading an existing database, run the price column migration:
+If upgrading an existing database or if prices/balance show $0.00 instead of decimals, run the migration:
 ```bash
 python -m bot.migrate_prices
 ```
-This converts the price column from INTEGER to REAL to support decimal values.
+This converts both `product_prices.price` and `users.balance` columns from INTEGER to NUMERIC to support decimal values.
 
 ### Deployment Considerations
 - Designed for containerized deployment (Docker/Kubernetes)
