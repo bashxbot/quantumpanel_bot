@@ -30,6 +30,8 @@ class DatabaseConfig:
 @dataclass
 class RedisConfig:
     url: str = os.getenv("REDIS_URL", "")
+    rest_url: str = os.getenv("REDIS_REST_URL", "")
+    rest_token: str = os.getenv("REDIS_REST_TOKEN", "")
 
 
 @dataclass

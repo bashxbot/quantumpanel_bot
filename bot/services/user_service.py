@@ -2,6 +2,7 @@ from typing import Optional, List
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
+from decimal import Decimal
 from loguru import logger
 
 from bot.models import User, UserStatus
@@ -74,7 +75,7 @@ class UserService:
         user = result.scalar_one_or_none()
         
         if user:
-            user.balance += amount
+            user.balance += Decimal(str(amount))
             await self.session.commit()
             await cache.delete(f"user:{user.telegram_id}")
             logger.info(f"💰 Balance updated for user {user_id}: {amount:+.2f}")
@@ -146,7 +147,7 @@ class UserService:
         user = result.scalar_one_or_none()
         
         if user:
-            user.balance = amount
+            user.balance = Decimal(str(amount))
             await self.session.commit()
             await cache.delete(f"user:{user.telegram_id}")
             logger.info(f"💰 Balance set for user {user_id}: {amount}")
