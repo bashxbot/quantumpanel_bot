@@ -240,7 +240,7 @@ async def show_products(callback: CallbackQuery):
                 "id": p.id,
                 "name": p.name,
                 "description": p.description,
-                "prices": [{"id": pr.id, "duration": pr.duration, "price": float(pr.price)} for pr in p.prices]
+                "prices": [{"id": pr.id, "duration": pr.duration, "price": float(pr.price) if pr.price is not None else 0.0} for pr in p.prices]
             }
             for p in products
         ]
@@ -307,10 +307,15 @@ async def show_product_detail(callback: CallbackQuery):
         total_stock = 0
         for pr in product.prices:
             duration_stock = stock_per_duration.get(pr.duration, 0)
+            # Ensure price is properly converted to float
+            try:
+                price_float = float(pr.price) if pr.price is not None else 0.0
+            except (ValueError, TypeError):
+                price_float = 0.0
             prices_with_stock.append({
                 "id": pr.id, 
                 "duration": pr.duration, 
-                "price": float(pr.price),
+                "price": price_float,
                 "in_stock": duration_stock > 0
             })
             total_stock += duration_stock

@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, Numeric
 from sqlalchemy.orm import relationship
+from sqlalchemy.types import TypeDecorator
 from .base import Base, TimestampMixin
 from decimal import Decimal
 

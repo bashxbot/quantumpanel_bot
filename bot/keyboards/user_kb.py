@@ -120,7 +120,12 @@ def product_detail_keyboard(product_id: int, prices: list, is_premium: bool = Tr
             duration_stock = stock_per_duration.get(price['duration'], 0)
             
             price_value = price['price']
-            price_display = f"${float(price_value):.2f}"
+            # Ensure price is converted to float and formatted correctly
+            try:
+                price_float = float(price_value) if price_value is not None else 0.0
+            except (ValueError, TypeError):
+                price_float = 0.0
+            price_display = f"${price_float:.2f}"
             
             if in_stock and duration_stock > 0:
                 builder.row(
