@@ -103,7 +103,7 @@ async def cmd_start(message: Message):
         text = Templates.user_dashboard(
             first_name=user.first_name or "User",
             telegram_id=user.telegram_id,
-            balance=user.balance,
+            balance=float(user.balance) if user.balance is not None else 0.0,
             status=user.status.value,
             last_purchase=user.last_purchase_at
         )
@@ -144,7 +144,7 @@ async def back_to_menu(callback: CallbackQuery):
         text = Templates.user_dashboard(
             first_name=user.first_name or "User",
             telegram_id=user.telegram_id,
-            balance=user.balance,
+            balance=float(user.balance) if user.balance is not None else 0.0,
             status=user.status.value,
             last_purchase=user.last_purchase_at
         )

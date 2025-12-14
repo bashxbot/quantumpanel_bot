@@ -1,5 +1,5 @@
 """
-Migration script to change product_prices.price column from INTEGER to FLOAT/REAL
+Migration script to change product_prices.price and users.balance columns from INTEGER to NUMERIC
 Run this script once to migrate existing databases.
 
 Usage: python -m bot.migrate_prices
@@ -31,7 +31,7 @@ async def migrate():
     engine = create_async_engine(database_url)
     
     async with engine.begin() as conn:
-        # Check if column needs migration
+        # Migrate product_prices.price column
         result = await conn.execute(text("""
             SELECT data_type FROM information_schema.columns 
             WHERE table_name = 'product_prices' AND column_name = 'price'
@@ -41,18 +41,40 @@ async def migrate():
         if row:
             current_type = row[0].lower()
             if 'int' in current_type:
-                print(f"📊 Current type: {current_type}, migrating to REAL...")
+                print(f"📊 product_prices.price: {current_type}, migrating to NUMERIC(10,2)...")
                 await conn.execute(text("""
                     ALTER TABLE product_prices 
-                    ALTER COLUMN price TYPE REAL USING price::real
+                    ALTER COLUMN price TYPE NUMERIC(10,2) USING price::numeric(10,2)
                 """))
-                print("✅ Migration complete! Price column now supports decimals.")
+                print("✅ product_prices.price now supports decimals.")
             else:
-                print(f"✅ Column already supports decimals (type: {current_type})")
+                print(f"✅ product_prices.price already supports decimals (type: {current_type})")
         else:
             print("⚠️ Table 'product_prices' not found. Will be created on next bot start.")
+        
+        # Migrate users.balance column
+        result = await conn.execute(text("""
+            SELECT data_type FROM information_schema.columns 
+            WHERE table_name = 'users' AND column_name = 'balance'
+        """))
+        row = result.fetchone()
+        
+        if row:
+            current_type = row[0].lower()
+            if 'int' in current_type:
+                print(f"📊 users.balance: {current_type}, migrating to NUMERIC(10,2)...")
+                await conn.execute(text("""
+                    ALTER TABLE users 
+                    ALTER COLUMN balance TYPE NUMERIC(10,2) USING balance::numeric(10,2)
+                """))
+                print("✅ users.balance now supports decimals.")
+            else:
+                print(f"✅ users.balance already supports decimals (type: {current_type})")
+        else:
+            print("⚠️ Table 'users' not found. Will be created on next bot start.")
     
     await engine.dispose()
+    print("\n✅ Migration complete!")
 
 if __name__ == "__main__":
     from dotenv import load_dotenv

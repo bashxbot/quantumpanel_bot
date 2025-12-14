@@ -89,8 +89,20 @@ Install with: `cd client && npm install`
 
 - The web server runs on port 5000 by default
 - The React admin panel is built during deployment and served by the Python server
-- If prices show $0.00, you may need to re-add prices with decimal format (e.g., `1d 0.50`)
 - The database tables are created automatically on first run
+
+## Database Migration for Decimal Prices
+
+If your prices or balances show $0.00 instead of decimal values (e.g., $0.25), you need to run the migration script. This converts INTEGER columns to NUMERIC type to support decimals.
+
+**Run the migration on Render:**
+1. Go to your Render service
+2. Open the Shell tab
+3. Run: `python -m bot.migrate_prices`
+
+This will update both `product_prices.price` and `users.balance` columns to support decimal values.
+
+**Note:** After migration, you may need to re-add prices if they were stored as integers (e.g., $0.25 stored as $0).
 
 ## Troubleshooting
 
